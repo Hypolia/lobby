@@ -1,0 +1,21 @@
+services:
+  mc:
+    image: itzg/minecraft-server
+    tty: true
+    stdin_open: true
+    ports:
+      - "25575:25575"
+      - "25565:25565"
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "1.20.2"
+    volumes:
+      - ./target/lobby-0.1.0.jar:/data/plugins/lobby-0.1.0.jar
+      - /opt/hypolia/maps/lobby:/data/world
+    networks:
+      - mc-net
+
+networks:
+  mc-net:
+    driver: bridge

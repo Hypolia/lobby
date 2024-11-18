@@ -1,0 +1,10 @@
+name: lobby
+version: '${version}'
+main: fr.hypolia.lobby.Lobby
+api-version: 1.20
+load: POSTWORLD
+softdepend:
+  - InvUI
+commands:
+  createnpc:
+    description: Spawn a Mini-Game NPC.
