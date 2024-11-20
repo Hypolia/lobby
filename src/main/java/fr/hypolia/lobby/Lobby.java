@@ -1,8 +1,11 @@
 package fr.hypolia.lobby;
 
 import fr.hypolia.lobby.commands.SpawnNPC;
+import fr.hypolia.lobby.entities.WelcomeNPC;
 import fr.hypolia.lobby.events.LobbyEvents;
+import fr.hypolia.lobby.managers.NPCManager;
 import fr.hypolia.lobby.services.KeycloakService;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -12,9 +15,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Lobby extends JavaPlugin {
   private PlayerApiClient playerApiClient;
+  private NPCManager npcManager;
+
+  private static Lobby instance;
+
+  public static Lobby getInstance() {
+    return instance;
+  }
+
+  public NPCManager getNpcManager() {
+    return npcManager;
+  }
 
   @Override
   public void onEnable() {
+    instance = this;
     getLogger().info("Lobby plugin enabled");
 
     KeycloakService keycloakService = new KeycloakService(
@@ -24,21 +39,22 @@ public final class Lobby extends JavaPlugin {
         "af9gDHh6HabWr1yNvW7JOgXhPZVY1NwB"
     );
 
-
+    npcManager = new NPCManager();
     /*
 
     playerApiClient = new PlayerApiClient("http://localhost:3333", keycloakService);*/
     cleanUpLobby();
 
-    this.getCommand("createnpc").setExecutor(new SpawnNPC());
+    spawnNCP();
+
     getServer().getPluginManager().registerEvents(new LobbyEvents(), this);
 
-    spawnNCP();
   }
 
   @Override
   public void onDisable() {
     getLogger().info("Lobby plugin disabled");
+    cleanUpLobby();
   }
 
   private void cleanUpLobby () {
@@ -49,12 +65,19 @@ public final class Lobby extends JavaPlugin {
       return;
     }
 
+
+    getLogger().info("Nettoyage du lobby...");
+
     Location lobbyCenter = new Location(world, 0, 12, 0); // Coordonnées approximatives du lobby
     double cleanupRadius = 200.0; // Rayon du nettoyage autour du centre
 
-    world.getNearbyEntities(lobbyCenter, cleanupRadius, cleanupRadius, cleanupRadius).stream()
-      .filter(entity -> entity instanceof Villager)
-      .forEach(Entity::remove);
+    for (Entity entity : world.getNearbyEntities(lobbyCenter, cleanupRadius, cleanupRadius, cleanupRadius)) {
+      if (entity.getType() == EntityType.VILLAGER) {
+        getLogger().info("Suppression du PNJ " + entity.getUniqueId());
+        entity.remove();
+      }
+    }
+
   }
 
   private void spawnNCP() {
@@ -68,13 +91,8 @@ public final class Lobby extends JavaPlugin {
     Location location = new Location(world, -24.5, 12, 8.5, -90, 0);
     double searchRadius = 1.0;
 
-    Villager npc = (Villager) world.spawnEntity(location, EntityType.VILLAGER);
-
-    npc.setCustomName("§6Guide du Lobby");
-    npc.setCustomNameVisible(true);
-    npc.setAI(false); // Empêche les déplacements
-    npc.setCollidable(false); // Empêche les interactions physiques avec les joueurs
-    npc.setInvulnerable(true); // Empêche les dégâts
+    WelcomeNPC welcomeNPC = new WelcomeNPC(location);
+    npcManager.registerNPC(welcomeNPC);
 
     getLogger().info("PNJ 'Guide du Lobby' spawn à " + location.getX() + ", " + location.getY() + ", " + location.getZ());
   }

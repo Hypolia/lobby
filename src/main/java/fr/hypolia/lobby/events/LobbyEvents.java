@@ -3,6 +3,7 @@ package fr.hypolia.lobby.events;
 import fr.hypolia.lobby.LobbyItems;
 import fr.hypolia.lobby.LobbyScoreboard;
 import fr.hypolia.lobby.PlayerApiClient;
+import fr.hypolia.lobby.inventories.CountItem;
 import fr.hypolia.lobby.utils.ItemBuilder;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -82,6 +83,8 @@ public class LobbyEvents implements Listener {
             .setName("§b")
             .setUnbreakable(true)
             .build();
+
+        CountItem countItem = new CountItem();
         Gui gui = Gui.normal()
             .setStructure(
                 "# # # # # # # # #",
@@ -90,6 +93,8 @@ public class LobbyEvents implements Listener {
                 "# # # # # # # # #")
             .addIngredient('#', new SimpleItem(item1))
             .build();
+
+        gui.setItem(10, countItem);
 
         Window window = Window.single()
             .setViewer(player)
