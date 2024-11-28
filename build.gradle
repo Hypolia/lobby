@@ -1,0 +1,82 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+}
+
+group = 'fr.hypolia'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc-repo"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        name = "xenondevs"
+        url = "https://repo.xenondevs.xyz/releases"
+    }
+    maven {
+        name = "protocolLib-repo"
+        url = "https://repo.dmulloy2.net/repository/public/"
+    }
+}
+
+dependencies {
+    // Paper API et Mojang API (fournis par le serveur, exclus du shading)
+    compileOnly "io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT"
+    compileOnly "io.papermc.paper:paper-mojangapi:1.20.2-R0.1-SNAPSHOT"
+
+    // ProtocolLib (non shadé, fourni par le serveur)
+    compileOnly "com.comphenix.protocol:ProtocolLib:5.0.0"
+
+    // InvUI
+    implementation "xyz.xenondevs.invui:invui:1.41"
+
+    // Apache HTTP Client (v5 avec Fluent)
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.4.1'
+    implementation 'org.apache.httpcomponents.client5:httpclient5-fluent:5.4.1'
+
+    // Apache HTTP Client (v4 si nécessaire pour compatibilité rétro)
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+}
+
+def targetJavaVersion = 17
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+    sourceCompatibility = JavaVersion.toVersion(targetJavaVersion)
+    targetCompatibility = JavaVersion.toVersion(targetJavaVersion)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release.set(targetJavaVersion)
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties props
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand props
+    }
+}
+
+tasks.shadowJar {
+    archiveClassifier.set('all')
+    mergeServiceFiles()
+
+    dependencies {
+        // Exclure les dépendances fournies par le serveur
+        exclude(dependency('io.papermc.paper:paper-api:.*'))
+        exclude(dependency('io.papermc.paper:paper-mojangapi:.*'))
+        exclude(dependency('com.comphenix.protocol:ProtocolLib:.*'))
+    }
+}
+
+// S'assurer que la tâche build génère le JAR avec dépendances
+tasks.build {
+    dependsOn tasks.shadowJar
+}
