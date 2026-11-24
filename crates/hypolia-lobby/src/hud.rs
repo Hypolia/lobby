@@ -111,7 +111,7 @@ pub fn build_sidebar_lines(input: &PlayerHudInput) -> Vec<String> {
         "§3".to_owned(),
         format!("§fPing : §a{ping}ms §8| {tps_color}{tps:.1} TPS"),
         "§4".to_owned(),
-        "§6play.hypolia.gg".to_owned(),
+        "§6play.ferrislabs.fr".to_owned(),
     ]);
     lines
 }
