@@ -1,0 +1,17 @@
+# Groups and rights.
+# Every player belongs to the `default` group. A group lists its rights and the
+# groups it inherits. `-node` removes a right (it wins over any grant), `*`
+# grants everything and `kit.*` everything below `kit`. Operators of level 4
+# have every right.
+#
+# groups:
+#   default:
+#     permissions: ["chat.use"]
+#   vip:
+#     permissions: ["kit.use", "chat.color"]
+#     inherits: [default]
+#
+# A player is found by UUID or by name.
+# players:
+#   "Steve":
+#     groups: [vip]

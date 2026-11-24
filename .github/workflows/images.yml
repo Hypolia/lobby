@@ -1,0 +1,82 @@
+name: Build & Publish Images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: hypolia
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout lobby
+        uses: actions/checkout@v4
+        with:
+          path: lobby
+
+      - name: Read pinned commits
+        id: refs
+        run: |
+          echo "sdk=$(tr -d '[:space:]' < lobby/sdk.ref)" >> "$GITHUB_OUTPUT"
+          echo "rspigot=$(tr -d '[:space:]' < lobby/rspigot.ref)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout sdk
+        uses: actions/checkout@v4
+        with:
+          repository: hypolia/sdk
+          ref: ${{ steps.refs.outputs.sdk }}
+          path: sdk
+          token: ${{ secrets.HYPOLIA_READ_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Checkout rspigot
+        uses: actions/checkout@v4
+        with:
+          repository: ferrislabs/rspigot
+          ref: ${{ steps.refs.outputs.rspigot }}
+          path: rspigot
+          token: ${{ secrets.RSPIGOT_READ_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push images
+        uses: docker/bake-action@v6
+        with:
+          workdir: lobby
+          source: .
+          files: docker-bake.hcl
+          allow: |
+            fs.read=${{ github.workspace }}/sdk
+            fs.read=${{ github.workspace }}/rspigot
+          push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+          set: |
+            *.cache-from=type=gha,scope=lobby-${{ runner.arch }}
+            ${{ github.event_name != 'pull_request' && format('*.cache-to=type=gha,mode=max,scope=lobby-{0}', runner.arch) || '' }}
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}/${{ env.OWNER }}
+          IMAGE_TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'latest' }}
+          EXTRA_TAG: ${{ github.event_name == 'pull_request' && format('pr-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || github.sha }}
+          SDK_DIR: ${{ github.workspace }}/sdk
+          RSPIGOT_DIR: ${{ github.workspace }}/rspigot
+          RSPIGOT_REF: ${{ steps.refs.outputs.rspigot }}

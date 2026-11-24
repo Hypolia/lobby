@@ -1,0 +1,8 @@
+bind: 127.0.0.1:25580
+host: 127.0.0.1
+port: 25580
+token: ''
+decision-ticks: 1
+late-cancel-ticks: 20
+order: []
+priorities: {}

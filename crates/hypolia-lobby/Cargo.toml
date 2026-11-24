@@ -1,0 +1,57 @@
+[package]
+name = "hypolia-lobby"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+default-run = "hypolia-lobby"
+
+[lib]
+name = "hypolia_lobby"
+path = "src/lib.rs"
+
+[[bin]]
+name = "hypolia-lobby"
+path = "src/main.rs"
+
+[[bin]]
+name = "hypolia-lobby-migrate"
+path = "src/bin/migrate.rs"
+
+[[bin]]
+name = "normalize-anvil"
+path = "src/bin/normalize_anvil.rs"
+
+[dependencies]
+base64.workspace = true
+dotenvy.workspace = true
+hypolia-progression.workspace = true
+hypolia-protocol.workspace = true
+futures-util.workspace = true
+reqwest.workspace = true
+rspigot-anvil.workspace = true
+rspigot-core.workspace = true
+rspigot-domain.workspace = true
+rspigot-nbt.workspace = true
+rspigot-plugin.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tracing-subscriber.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+[dev-dependencies]
+testcontainers-modules.workspace = true
+axum.workspace = true
+crossbeam-channel.workspace = true
+rspigot-plugins.workspace = true
+
+[features]
+postgres-tests = []
+
+[lints]
+workspace = true

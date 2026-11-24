@@ -1,0 +1,18 @@
+/target
+.env
+*.bak
+.DS_Store
+.sessions.json
+.capitainerie-sessions.json
+
+# Fichiers runtime du serveur rspigot (map archivée dans server/world.zip, config exemple dans server/spigot.yml.example)
+/server/logs/
+/server/crash-reports/
+/server/ops.json
+/server/whitelist.json
+/server/banned-players.json
+/server/banned-ips.json
+/server/usercache.json
+/server/spigot.yml
+/server/world/
+/server/world_rspigot_*/

@@ -1,0 +1,55 @@
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+license = "MIT"
+rust-version = "1.90"
+
+[workspace.dependencies]
+rspigot-anvil = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-anvil" }
+rspigot-core = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-core" }
+rspigot-domain = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-domain" }
+rspigot-nbt = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-nbt" }
+rspigot-plugin = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-plugin" }
+rspigot-plugins = { path = "/opt/minecraft/dev/rspigot/crates/rspigot-plugins" }
+
+hypolia-progression = { path = "../sdk/crates/hypolia-progression" }
+hypolia-protocol = { path = "../sdk/crates/hypolia-protocol" }
+
+axum = "0.8"
+base64 = "0.22"
+crossbeam-channel = "0.5"
+dotenvy = "0.15"
+futures-util = "0.3"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", default-features = false, features = ["chrono", "json", "macros", "migrate", "postgres", "runtime-tokio", "tls-rustls-ring-webpki", "uuid"] }
+testcontainers-modules = { version = "0.15", features = ["postgres"] }
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+uuid = { version = "1", features = ["serde", "v4"] }
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[profile.release.package."*"]
+codegen-units = 16
+
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+opt-level = 2

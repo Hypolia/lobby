@@ -1,0 +1,370 @@
+{
+  "spawn": {
+    "x": 13.5,
+    "y": 29.0,
+    "z": -82.5,
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "void_y": -10.0,
+  "pois": {
+    "capitainerie": {
+      "x": 24.5,
+      "y": 24.0,
+      "z": -35.5,
+      "yaw": -90.0,
+      "pitch": 0.0
+    },
+    "castle": {
+      "x": -49.5,
+      "y": 62.0,
+      "z": 60.5,
+      "yaw": -145.0,
+      "pitch": 12.0
+    },
+    "plaza": {
+      "x": 13.5,
+      "y": 26.0,
+      "z": -64.5,
+      "yaw": 0.0,
+      "pitch": 0.0
+    },
+    "portal": {
+      "x": 13.5,
+      "y": 22.0,
+      "z": -22.5,
+      "yaw": 0.0,
+      "pitch": 8.0
+    },
+    "spawn": {
+      "x": 13.5,
+      "y": 29.0,
+      "z": -82.5,
+      "yaw": 0.0,
+      "pitch": 0.0
+    }
+  },
+  "pedestals": [
+    {
+      "index": 1,
+      "id": "rush",
+      "npc_name": "Jeu_Rush",
+      "title": "§6§lRush",
+      "subtitle": "§7Bientôt disponible",
+      "game_id": "rush",
+      "active": false,
+      "main_hand": "minecraft:orange_wool",
+      "off_hand": null,
+      "pose": {
+        "x": 26.5,
+        "y": 27.0,
+        "z": -70.5,
+        "yaw": 105.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 2,
+      "id": "pitchout",
+      "npc_name": "Jeu_Pitchout",
+      "title": "§b§lPitchout",
+      "subtitle": "§7Bientôt disponible",
+      "game_id": "pitchout",
+      "active": false,
+      "main_hand": "minecraft:bow",
+      "off_hand": "minecraft:feather",
+      "pose": {
+        "x": 26.5,
+        "y": 27.0,
+        "z": -61.5,
+        "yaw": 115.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 3,
+      "id": "fk",
+      "npc_name": "Jeu_FK",
+      "title": "§e§lFallen Kingdoms",
+      "subtitle": "§7Bientôt disponible",
+      "game_id": "fallen_kingdoms",
+      "active": false,
+      "main_hand": "minecraft:iron_sword",
+      "off_hand": "minecraft:shield",
+      "pose": {
+        "x": 22.5,
+        "y": 27.0,
+        "z": -52.5,
+        "yaw": 145.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 4,
+      "id": "sheepwars",
+      "npc_name": "SheepWars",
+      "title": "§d§lSHEEP WARS",
+      "subtitle": "§a▶ Clic droit pour jouer !",
+      "game_id": "sheepwars",
+      "active": true,
+      "main_hand": "minecraft:white_wool",
+      "off_hand": "minecraft:bow",
+      "pose": {
+        "x": 13.5,
+        "y": 27.0,
+        "z": -48.5,
+        "yaw": 180.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 5,
+      "id": "pvpswap",
+      "npc_name": "Jeu_PvPSwap",
+      "title": "§5§lPvP Swap",
+      "subtitle": "§7Bientôt disponible",
+      "game_id": "pvp_swap",
+      "active": false,
+      "main_hand": "minecraft:ender_pearl",
+      "off_hand": "minecraft:diamond_sword",
+      "pose": {
+        "x": 4.5,
+        "y": 27.0,
+        "z": -52.5,
+        "yaw": -145.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 6,
+      "id": "moutron",
+      "npc_name": "Jeu_Moutron",
+      "title": "§3§lMoutron",
+      "subtitle": "§7Bientôt disponible",
+      "game_id": "moutron",
+      "active": false,
+      "main_hand": "minecraft:light_blue_wool",
+      "off_hand": null,
+      "pose": {
+        "x": 0.5,
+        "y": 27.0,
+        "z": -61.5,
+        "yaw": -115.0,
+        "pitch": 0.0
+      }
+    },
+    {
+      "index": 7,
+      "id": "towerwars",
+      "npc_name": "TowerWars",
+      "title": "§b§lTOWER WARS",
+      "subtitle": "§a▶ Clic droit pour jouer !",
+      "game_id": "towerwars",
+      "active": true,
+      "main_hand": "minecraft:crossbow",
+      "off_hand": "minecraft:arrow",
+      "pose": {
+        "x": 0.5,
+        "y": 27.0,
+        "z": -70.5,
+        "yaw": -105.0,
+        "pitch": 0.0
+      }
+    }
+  ],
+  "ambient_npcs": [
+    {
+      "id": "guard",
+      "npc_name": "Garde_Pont",
+      "display_name": "§9§lGarde Halvard",
+      "subtitle": "§7Sentinelle de la Citadelle",
+      "role": "guard",
+      "walk_speed": 3.1,
+      "waypoints": [
+        {
+          "x": 13.5,
+          "y": 22.0,
+          "z": -39.5,
+          "yaw": 0.0,
+          "pitch": 0.0
+        },
+        {
+          "x": 16.5,
+          "y": 22.0,
+          "z": -34.5,
+          "yaw": 35.0,
+          "pitch": 0.0
+        },
+        {
+          "x": 13.5,
+          "y": 22.0,
+          "z": -29.5,
+          "yaw": 180.0,
+          "pitch": 0.0
+        },
+        {
+          "x": 10.5,
+          "y": 22.0,
+          "z": -34.5,
+          "yaw": -145.0,
+          "pitch": 0.0
+        }
+      ],
+      "dialogues": [
+        "Bienvenue dans la Citadelle Hypolia ! Le socle central de la galerie mène à SheepWars.",
+        "Votre identité FerrisKey débloque vos grades et l'accès au Capitaine sur l'esplanade Est !",
+        "Avancez jusqu'à la Place Centrale pour admirer le Vortex Pourpre et les dirigeables."
+      ]
+    },
+    {
+      "id": "lumberjack",
+      "npc_name": "Bucheron_Olaf",
+      "display_name": "§2§lOlaf le Charpentier",
+      "subtitle": "§7Charpentes & Dirigeables",
+      "role": "lumberjack",
+      "walk_speed": 2.8,
+      "waypoints": [
+        {
+          "x": -5.5,
+          "y": 24.0,
+          "z": -30.5,
+          "yaw": 0.0,
+          "pitch": 0.0
+        },
+        {
+          "x": -3.5,
+          "y": 24.0,
+          "z": -22.5,
+          "yaw": 90.0,
+          "pitch": 0.0
+        },
+        {
+          "x": -6.5,
+          "y": 24.0,
+          "z": -15.5,
+          "yaw": 180.0,
+          "pitch": 0.0
+        }
+      ],
+      "dialogues": [
+        "Tout ce bois d'épicéa sert à caréner les dirigeables amarrés au-dessus du château !",
+        "Attention aux moutons explosifs de SheepWars, ils soufflent une coque en deux secondes."
+      ]
+    },
+    {
+      "id": "mage",
+      "npc_name": "Mage_Astrid",
+      "display_name": "§5§lMage Astrid",
+      "subtitle": "§7Gardienne du Vortex",
+      "role": "portal_mage",
+      "walk_speed": 2.4,
+      "waypoints": [
+        {
+          "x": 9.5,
+          "y": 22.0,
+          "z": -24.5,
+          "yaw": -35.0,
+          "pitch": 8.0
+        },
+        {
+          "x": 13.5,
+          "y": 22.0,
+          "z": -24.5,
+          "yaw": 0.0,
+          "pitch": 12.0
+        },
+        {
+          "x": 17.5,
+          "y": 22.0,
+          "z": -24.5,
+          "yaw": 35.0,
+          "pitch": 8.0
+        }
+      ],
+      "dialogues": [
+        "Le Vortex Pourpre au centre de la place canalise l'énergie vers les arènes SheepWars.",
+        "Sautez dans le Vortex, cliquez sur le socle SheepWars ou utilisez votre Boussole pour jouer !"
+      ]
+    },
+    {
+      "id": "innkeeper",
+      "npc_name": "Aubergiste_Freya",
+      "display_name": "§6§lFreya la Marchande",
+      "subtitle": "§7Allée des Échoppes",
+      "role": "innkeeper",
+      "walk_speed": 2.6,
+      "waypoints": [
+        {
+          "x": 26.5,
+          "y": 24.0,
+          "z": -23.5,
+          "yaw": -90.0,
+          "pitch": 0.0
+        },
+        {
+          "x": 29.5,
+          "y": 24.0,
+          "z": -17.5,
+          "yaw": -90.0,
+          "pitch": 0.0
+        },
+        {
+          "x": 26.5,
+          "y": 24.0,
+          "z": -11.5,
+          "yaw": -135.0,
+          "pitch": 0.0
+        }
+      ],
+      "dialogues": [
+        "Bienvenue sur la Grand-Place ! Réglez votre vitesse ou activez le vol dans les Options.",
+        "Depuis les remparts du château, la vue sur la flotte de dirigeables est imprenable !"
+      ]
+    }
+  ],
+  "captain": {
+    "x": 29.5,
+    "y": 24.0,
+    "z": -35.5,
+    "yaw": 90.0,
+    "pitch": 0.0
+  },
+  "agent_idle_origin": {
+    "x": 27.5,
+    "y": 24.0,
+    "z": -39.5,
+    "yaw": 0.0,
+    "pitch": 0.0
+  },
+  "agent_idle_step_x": 1.8,
+  "agent_workstations": [
+    {
+      "x": 33.5,
+      "y": 24.0,
+      "z": -38.5,
+      "yaw": -90.0,
+      "pitch": 12.0
+    },
+    {
+      "x": 33.5,
+      "y": 24.0,
+      "z": -35.5,
+      "yaw": -90.0,
+      "pitch": 12.0
+    },
+    {
+      "x": 32.5,
+      "y": 24.0,
+      "z": -31.5,
+      "yaw": -45.0,
+      "pitch": 12.0
+    },
+    {
+      "x": 28.5,
+      "y": 24.0,
+      "z": -31.5,
+      "yaw": 0.0,
+      "pitch": 12.0
+    }
+  ]
+}
