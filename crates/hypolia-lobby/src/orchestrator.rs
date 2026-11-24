@@ -453,6 +453,10 @@ impl OrchestratorClient {
 pub struct QueueCounts {
     pub sheepwars: usize,
     pub towerwars: usize,
+    /// Players on SheepWars servers right now.
+    pub sheepwars_playing: u32,
+    /// Players on TowerWars servers right now.
+    pub towerwars_playing: u32,
 }
 
 impl QueueCounts {
@@ -464,9 +468,26 @@ impl QueueCounts {
                 .find(|status| status.game == game)
                 .map(|status| status.queue_len)
         };
+        let playing = |game: GameKind| {
+            snapshot
+                .servers
+                .iter()
+                .filter(|server| server.kind == game.server_kind())
+                .map(|server| server.player_count)
+                .sum()
+        };
         Self {
             sheepwars: per_game(GameKind::SheepWars).unwrap_or(snapshot.queue_len),
             towerwars: per_game(GameKind::TowerWars).unwrap_or(0),
+            sheepwars_playing: playing(GameKind::SheepWars),
+            towerwars_playing: playing(GameKind::TowerWars),
+        }
+    }
+
+    pub const fn playing(self, game: GameKind) -> u32 {
+        match game {
+            GameKind::SheepWars => self.sheepwars_playing,
+            GameKind::TowerWars => self.towerwars_playing,
         }
     }
 
@@ -568,7 +589,7 @@ mod tests {
             QueueCounts::from_snapshot(&snapshot),
             QueueCounts {
                 sheepwars: 3,
-                towerwars: 0
+                ..QueueCounts::default()
             }
         );
         snapshot.games = vec![GameFleetStatus {
@@ -591,6 +612,32 @@ mod tests {
         );
         assert_eq!(counts.get(GameKind::TowerWars), 5);
         assert_eq!(counts.get(GameKind::SheepWars), 3);
+    }
+
+    #[test]
+    fn queue_counts_sum_the_players_of_each_game() {
+        let snapshot: FleetStatusSnapshot = serde_json::from_value(serde_json::json!({
+            "queue_len": 0, "min_players": 2, "max_players_per_server": 8,
+            "min_replicas": 1, "max_replicas": 2, "standby_servers": 0,
+            "ready_servers": 0, "in_game_servers": 0, "starting_servers": 0,
+            "queued_players": [],
+            "servers": [
+                {"server_id": "sw-1", "address": "a", "phase": "in_game", "player_count": 6,
+                 "max_players": 8, "ready": true, "heartbeat_age_secs": 1, "kind": "sheep_wars"},
+                {"server_id": "sw-2", "address": "b", "phase": "waiting", "player_count": 2,
+                 "max_players": 8, "ready": true, "heartbeat_age_secs": 1, "kind": "sheep_wars"},
+                {"server_id": "tw-1", "address": "c", "phase": "in_game", "player_count": 3,
+                 "max_players": 4, "ready": true, "heartbeat_age_secs": 1, "kind": "tower_wars"}
+            ],
+            "lobbies": [
+                {"server_id": "lobby-a", "address": "d", "phase": "waiting", "player_count": 9,
+                 "max_players": 100, "ready": true, "heartbeat_age_secs": 1, "kind": "lobby"}
+            ]
+        }))
+        .expect("snapshot");
+        let counts = QueueCounts::from_snapshot(&snapshot);
+        assert_eq!(counts.playing(GameKind::SheepWars), 8);
+        assert_eq!(counts.playing(GameKind::TowerWars), 3);
     }
 
     #[test]

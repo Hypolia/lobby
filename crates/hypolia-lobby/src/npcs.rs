@@ -33,8 +33,9 @@ pub fn pedestal_label(spec: &PedestalSpec, queued: QueueCounts) -> Option<String
         GameKind::TowerWars => "§b",
     };
     Some(format!(
-        "{}\n§fEn file : {color}{}\n{}",
+        "{}\n§fEn jeu : §a{} §8• §fEn file : {color}{}\n{}",
         spec.title,
+        queued.playing(game),
         queued.get(game),
         spec.subtitle
     ))
@@ -945,6 +946,8 @@ mod tests {
         let counts = QueueCounts {
             sheepwars: 2,
             towerwars: 7,
+            sheepwars_playing: 6,
+            towerwars_playing: 3,
         };
         let label_of = |id: &str| {
             let spec = layout.pedestals.iter().find(|p| p.id == id).expect("spec");
@@ -952,6 +955,16 @@ mod tests {
         };
         assert!(label_of("sheepwars").expect("label").contains("§d2"));
         assert!(label_of("towerwars").expect("label").contains("§b7"));
+        assert!(
+            label_of("sheepwars")
+                .expect("label")
+                .contains("En jeu : §a6")
+        );
+        assert!(
+            label_of("towerwars")
+                .expect("label")
+                .contains("En jeu : §a3")
+        );
         assert_eq!(label_of("rush"), None);
     }
 
