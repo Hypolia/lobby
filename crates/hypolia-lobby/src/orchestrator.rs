@@ -433,6 +433,13 @@ impl OrchestratorClient {
             .clone()
     }
 
+    pub fn last_snapshot(&self) -> Option<FleetStatusSnapshot> {
+        self.last_snapshot
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
     pub fn cached_queue_counts(&self) -> QueueCounts {
         self.last_snapshot
             .read()

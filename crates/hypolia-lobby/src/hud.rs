@@ -51,11 +51,11 @@ fn install_player_team(board: &Scoreboard, name: &str, key: TabKey) {
 
 #[derive(Debug, Clone, Copy, Default)]
 pub struct HubMetrics {
+    /// Players on the whole network, not only this lobby.
     pub online: u32,
-    pub max_players: u32,
+    pub in_game: u32,
+    pub lobby_number: Option<usize>,
     pub tps_1m: f64,
-    pub sheepwars_queued: usize,
-    pub towerwars_queued: usize,
     pub agents_working: usize,
     pub agents_total: usize,
 }
@@ -67,6 +67,7 @@ pub struct PlayerHudInput {
     pub ping_ms: i32,
     pub metrics: HubMetrics,
     pub network_level: Option<u32>,
+    pub level_percent: Option<u32>,
     pub coins: Option<u64>,
 }
 
@@ -78,14 +79,6 @@ pub fn build_sidebar_lines(input: &PlayerHudInput) -> Vec<String> {
         }
         None => "§fFerrisKey : §e/login".to_owned(),
     };
-    let tps = input.metrics.tps_1m.clamp(0.0, 20.0);
-    let tps_color = if tps >= 19.0 {
-        "§a"
-    } else if tps >= 16.0 {
-        "§e"
-    } else {
-        "§c"
-    };
     let ping = input.ping_ms.max(0);
 
     let mut lines = vec![
@@ -93,23 +86,28 @@ pub fn build_sidebar_lines(input: &PlayerHudInput) -> Vec<String> {
         format!("§fGrade : {}", input.rank.sidebar_label()),
         fk_line,
     ];
+    if let Some(level) = input.network_level {
+        let percent = input.level_percent.unwrap_or(0);
+        lines.push(format!("§fNiveau : §b{level} §7({percent}%)"));
+    }
     if let Some(coins) = input.coins {
-        lines.push(format!("§6Coins §f{coins}"));
+        lines.push(format!("§fCoins : §6{coins}"));
     }
     lines.extend([
         "§2".to_owned(),
-        format!(
-            "§fEn ligne : §a{}§7/§f{}",
-            input.metrics.online, input.metrics.max_players
-        ),
-        format!("§fSheepWars : §d{} prêt(s)", input.metrics.sheepwars_queued),
-        format!("§fTowerWars : §b{} prêt(s)", input.metrics.towerwars_queued),
+        format!("§fJoueurs : §a{}", input.metrics.online),
+        format!("§fEn jeu : §d{}", input.metrics.in_game),
+    ]);
+    if let Some(number) = input.metrics.lobby_number {
+        lines.push(format!("§fLobby : §e#{number}"));
+    }
+    lines.extend([
         format!(
             "§fCapitainerie : §b{}§7/§f{}",
             input.metrics.agents_working, input.metrics.agents_total
         ),
         "§3".to_owned(),
-        format!("§fPing : §a{ping}ms §8| {tps_color}{tps:.1} TPS"),
+        format!("§fPing : §a{ping}ms"),
         "§4".to_owned(),
         "§6play.ferrislabs.fr".to_owned(),
     ]);
@@ -125,14 +123,13 @@ pub fn build_tab_list(input: &PlayerHudInput) -> TabList {
     let ping = input.ping_ms.max(0);
 
     let header = format!(
-        "\n§6§l✦ HYPOLIA §8• §d§lHUB MINI-JEUX ✦\n§7Île Nordique §8• §fJoueurs : §a{}§7/§f{}\n",
-        input.metrics.online, input.metrics.max_players
+        "\n§6§l✦ HYPOLIA §8• §d§lHUB MINI-JEUX ✦\n§7Île Nordique §8• §fJoueurs : §a{}\n",
+        input.metrics.online
     );
     let footer = format!(
-        "\n§7Grade : {} §8• §7Compte : {fk_status}\n§7Ping : §a{ping} ms §8• §7TPS : §a{tps:.1} §8• §7SheepWars : §d{} §8• §7TowerWars : §b{}\n§6/menu §8• §d/sheepwars §8• §b/towerwars §8• §b/gadgets §8• §b/fly §8• §e/options\n",
+        "\n§7Grade : {} §8• §7Compte : {fk_status}\n§7Ping : §a{ping} ms §8• §7TPS : §a{tps:.1} §8• §7En jeu : §d{}\n§6/menu §8• §d/sheepwars §8• §b/towerwars §8• §b/gadgets §8• §b/fly §8• §e/options\n",
         input.rank.sidebar_label(),
-        input.metrics.sheepwars_queued,
-        input.metrics.towerwars_queued
+        input.metrics.in_game
     );
     TabList::new(header, footer)
 }
@@ -323,6 +320,7 @@ impl HudManager {
                 ping_ms,
                 metrics,
                 network_level: profiles.level(player.uuid),
+                level_percent: profiles.level_percent(player.uuid),
                 coins: profiles.coins(player.uuid),
             };
             self.refresh_player(&player, &input);
@@ -343,14 +341,14 @@ mod tests {
             ping_ms: 18,
             metrics: HubMetrics {
                 online: 12,
-                max_players: 100,
+                in_game: 5,
+                lobby_number: Some(2),
                 tps_1m: 20.0,
-                sheepwars_queued: 3,
-                towerwars_queued: 5,
                 agents_working: 2,
                 agents_total: 4,
             },
             network_level: Some(12),
+            level_percent: Some(45),
             coins: Some(340),
         };
         let lines = build_sidebar_lines(&input);
@@ -361,9 +359,12 @@ mod tests {
             "each scoreboard entry must be unique"
         );
         assert!(lines.iter().any(|l| l.contains("✔ nathael")));
-        assert!(lines.iter().any(|l| l.contains("SheepWars : §d3")));
-        assert!(lines.iter().any(|l| l.contains("TowerWars : §b5")));
-        assert!(lines.iter().any(|l| l == "§6Coins §f340"));
+        assert!(lines.iter().any(|l| l == "§fJoueurs : §a12"));
+        assert!(lines.iter().any(|l| l == "§fEn jeu : §d5"));
+        assert!(lines.iter().any(|l| l == "§fLobby : §e#2"));
+        assert!(lines.iter().any(|l| l == "§fNiveau : §b12 §7(45%)"));
+        assert!(lines.iter().any(|l| l == "§fCoins : §6340"));
+        assert!(!lines.iter().any(|l| l.contains("prêt(s)")));
 
         let tab = build_tab_list(&input);
         assert!(tab.header.contains("HYPOLIA"));
@@ -378,6 +379,7 @@ mod tests {
             ping_ms: 0,
             metrics: HubMetrics::default(),
             network_level: None,
+            level_percent: None,
             coins: None,
         };
         assert!(
