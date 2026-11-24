@@ -8,6 +8,7 @@ pub mod heartbeat;
 pub mod hud;
 pub mod lifecycle;
 pub mod menus;
+pub mod network;
 pub mod npcs;
 pub mod orchestrator;
 pub mod plugin;

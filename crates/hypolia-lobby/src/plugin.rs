@@ -29,6 +29,7 @@ use crate::menus::{
     GadgetsMenuAction, GamesMenuAction, MenuManager, OptionsMenuAction, apply_lobby_hotbar,
     decode_gadgets_click, decode_games_click, decode_options_click, decode_towerwars_size_click,
 };
+use crate::network::network_view;
 use crate::npcs::{CaptainTurn, NpcClickTarget, NpcDirector, pedestal_game};
 use crate::orchestrator::{
     OrchestratorClient, OrchestratorClientError, QueueCounts, ToggleQueueOutcome, game_fleet,
@@ -150,17 +151,23 @@ impl HypoliaLobby {
     }
 
     async fn collect_metrics(&self, server: &Server) -> HubMetrics {
-        let (online, max_players, tps_1m) = match server.get_state().await {
-            Ok(st) => (st.online, st.max_players, st.tps[0]),
-            Err(_) => (0, 100, 20.0),
+        let (local_online, tps_1m) = match server.get_state().await {
+            Ok(st) => (st.online, st.tps[0]),
+            Err(_) => (0, 20.0),
         };
+        let snapshot = self
+            .state
+            .orchestrator
+            .as_ref()
+            .and_then(|orch| orch.last_snapshot());
+        let own_id = self.state.heartbeat.as_ref().map(|hb| hb.server_id());
+        let network = network_view(snapshot.as_ref(), own_id, local_online);
         let (agents_working, agents_total) = self.state.npcs.agent_counts();
         HubMetrics {
-            online,
-            max_players,
+            online: network.online,
+            in_game: network.in_game,
+            lobby_number: network.lobby_number,
             tps_1m,
-            sheepwars_queued: self.queued_counts().sheepwars,
-            towerwars_queued: self.queued_counts().towerwars,
             agents_working,
             agents_total,
         }
@@ -195,6 +202,7 @@ impl HypoliaLobby {
                 ping_ms,
                 metrics,
                 network_level: self.state.profiles.level(player.uuid),
+                level_percent: self.state.profiles.level_percent(player.uuid),
                 coins: self.state.profiles.coins(player.uuid),
             },
         );
@@ -1797,6 +1805,16 @@ impl HypoliaLobby {
             self.state.config.capitainerie_realm,
             self.state.config.orchestrator_url,
         );
+    }
+
+    async fn announce_join(&self, event: &mut PlayerJoin) {
+        let message = hypolia_protocol::chat::join_message(&event.player().name);
+        event.set_join_message(Some(message));
+    }
+
+    async fn announce_quit(&self, event: &mut PlayerLeave) {
+        let message = hypolia_protocol::chat::quit_message(&event.player().name);
+        event.set_quit_message(Some(message));
     }
 
     async fn on_player_join(&self, event: &PlayerJoin) {

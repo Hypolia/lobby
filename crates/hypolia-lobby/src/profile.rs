@@ -195,6 +195,15 @@ impl ProfileCache {
         self.with(uuid, |p| p.map(|p| p.network.level))
     }
 
+    pub fn level_percent(&self, uuid: Uuid) -> Option<u32> {
+        self.with(uuid, |p| {
+            p.map(|p| {
+                let next = p.network.xp_for_next.max(1);
+                u32::try_from(p.network.xp_into_level.min(next) * 100 / next).unwrap_or(100)
+            })
+        })
+    }
+
     pub fn coins(&self, uuid: Uuid) -> Option<u64> {
         self.with(uuid, |p| p.map(|p| p.coins))
     }

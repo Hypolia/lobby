@@ -86,6 +86,10 @@ impl HeartbeatReporter {
         ))
     }
 
+    pub fn server_id(&self) -> &str {
+        &self.server_id
+    }
+
     pub fn observe(&self, max_players: u32, player_uuids: Vec<Uuid>) {
         *self.observed.lock().unwrap_or_else(|e| e.into_inner()) = Observation {
             max_players,
