@@ -307,6 +307,7 @@ pub fn populate_games_menu(inv: &CustomInventory, queued: QueueCounts) {
                 .lore([
                     "§7Deux équipes, des moutons explosifs.".to_owned(),
                     String::new(),
+                    format!("§7En jeu : §a{}", queued.sheepwars_playing),
                     format!("§7En file : §d{}", queued.sheepwars),
                     "§a▶ Cliquez pour jouer".to_owned(),
                 ])
@@ -321,6 +322,7 @@ pub fn populate_games_menu(inv: &CustomInventory, queued: QueueCounts) {
                 .lore([
                     "§7Tower defense, de 1 à 4 joueurs.".to_owned(),
                     String::new(),
+                    format!("§7En jeu : §a{}", queued.towerwars_playing),
                     format!("§7En file : §b{}", queued.towerwars),
                     "§a▶ Cliquez pour jouer".to_owned(),
                 ])
