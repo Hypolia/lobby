@@ -232,7 +232,7 @@ async fn queue_calls_carry_the_requested_game() {
     });
 
     let outcome = client(addr, fast_policy(Duration::from_secs(5)))
-        .toggle_queue(Uuid::new_v4(), "ferris", GameKind::TowerWars, 3)
+        .toggle_queue(Uuid::new_v4(), "ferris", GameKind::TowerWars, 2)
         .await
         .expect("joined");
     assert!(matches!(outcome, ToggleQueueOutcome::Joined(_)));
@@ -244,5 +244,5 @@ async fn queue_calls_carry_the_requested_game() {
         *recorder.join_game.lock().expect("lock"),
         Some(GameKind::TowerWars)
     );
-    assert_eq!(*recorder.join_match_size.lock().expect("lock"), Some(3));
+    assert_eq!(*recorder.join_match_size.lock().expect("lock"), Some(2));
 }

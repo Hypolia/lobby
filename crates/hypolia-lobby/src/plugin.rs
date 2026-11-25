@@ -1682,21 +1682,15 @@ fn queue_size_hint(game: GameKind, min_players: usize, total_queued: usize) -> S
     if game != GameKind::TowerWars {
         return String::new();
     }
-    match min_players {
-        1 => " §b(Solo)§a".to_owned(),
-        2..=4 => {
-            let name = match min_players {
-                2 => "Duo",
-                3 => "Trio",
-                _ => "Quatuor",
-            };
-            format!(
-                " §b({name} — {}/{min_players})§a",
-                total_queued.min(min_players)
-            )
-        }
-        _ => String::new(),
-    }
+    let name = match min_players {
+        2 => "Solo",
+        4 => "Duo",
+        _ => return String::new(),
+    };
+    format!(
+        " §b({name} — {}/{min_players})§a",
+        total_queued.min(min_players)
+    )
 }
 
 fn queue_min_hint(game: GameKind, min_players: usize) -> String {
@@ -3036,11 +3030,12 @@ mod tests {
     #[test]
     fn towerwars_queue_hint_names_the_chosen_size() {
         let hint = |min, queued| queue_size_hint(GameKind::TowerWars, min, queued);
-        assert_eq!(hint(1, 1), " §b(Solo)§a");
-        assert_eq!(hint(2, 1), " §b(Duo — 1/2)§a");
-        assert_eq!(hint(3, 5), " §b(Trio — 3/3)§a");
-        assert_eq!(hint(4, 2), " §b(Quatuor — 2/4)§a");
+        assert_eq!(hint(2, 1), " §b(Solo — 1/2)§a");
+        assert_eq!(hint(2, 5), " §b(Solo — 2/2)§a");
+        assert_eq!(hint(4, 3), " §b(Duo — 3/4)§a");
+        assert_eq!(hint(4, 9), " §b(Duo — 4/4)§a");
         assert_eq!(hint(0, 2), "");
+        assert_eq!(hint(3, 2), "");
         assert_eq!(hint(8, 2), "");
     }
 
