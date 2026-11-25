@@ -737,6 +737,13 @@ impl HypoliaLobby {
                     .toggle_queue(player.uuid, &player.name, game, match_size)
                     .await
                 {
+                    Ok(ToggleQueueOutcome::Joined(resp))
+                        if resp.status == QueueJoinStatus::NotPartyLeader =>
+                    {
+                        player
+                            .message
+                            .send(not_party_leader(tag, resp.target_server.as_deref()));
+                    }
                     Ok(ToggleQueueOutcome::Joined(resp)) => {
                         let counts = match orch.fetch_status().await {
                             Ok(snap) => QueueCounts::from_snapshot(&snap),
@@ -3013,6 +3020,13 @@ fn portal_launch_velocity(entry_step: Option<Vector>, yaw: f32) -> Vector {
         y: PORTAL_LAUNCH_LIFT,
         z: dir_z * speed,
     }
+}
+
+fn not_party_leader(tag: &str, leader: Option<&str>) -> String {
+    let leader = leader.unwrap_or("le chef");
+    format!(
+        "{tag} §8» §cSeul §f{leader} §cpeut lancer une partie pour le groupe. §7/group leave pour jouer seul."
+    )
 }
 
 #[cfg(test)]
