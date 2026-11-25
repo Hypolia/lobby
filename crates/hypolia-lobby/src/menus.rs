@@ -109,45 +109,25 @@ pub struct TowerWarsSizeOption {
     pub lore: [&'static str; 3],
 }
 
-pub const fn towerwars_size_options() -> [TowerWarsSizeOption; 4] {
+pub const fn towerwars_size_options() -> [TowerWarsSizeOption; 2] {
     [
         TowerWarsSizeOption {
-            slot: 1,
+            slot: 2,
             size: 1,
             name: "§b§lSolo",
             lore: [
-                "§7Démarre immédiatement",
+                "§7Chacun sa voie, 2 à 6 joueurs",
                 "§7Vous jouez sur votre propre voie.",
                 "§a▶ Cliquez pour rejoindre !",
             ],
         },
         TowerWarsSizeOption {
-            slot: 3,
+            slot: 6,
             size: 2,
             name: "§b§lDuo",
             lore: [
-                "§7Partie à 2 joueurs",
-                "§7Chacun joue sur sa propre voie.",
-                "§a▶ Cliquez pour rejoindre !",
-            ],
-        },
-        TowerWarsSizeOption {
-            slot: 5,
-            size: 3,
-            name: "§b§lTrio",
-            lore: [
-                "§7Partie à 3 joueurs",
-                "§7Chacun joue sur sa propre voie.",
-                "§a▶ Cliquez pour rejoindre !",
-            ],
-        },
-        TowerWarsSizeOption {
-            slot: 7,
-            size: 4,
-            name: "§b§lQuatuor",
-            lore: [
-                "§7Partie à 4 joueurs",
-                "§7Chacun joue sur sa propre voie.",
+                "§7Équipes de 2 sur une voie, 4 à 12 joueurs",
+                "§7Vous partagez votre voie avec un coéquipier.",
                 "§a▶ Cliquez pour rejoindre !",
             ],
         },
@@ -320,7 +300,7 @@ pub fn populate_games_menu(inv: &CustomInventory, queued: QueueCounts) {
             ItemStack::new(Material::Crossbow, 1)
                 .name("§b§lTowerWars")
                 .lore([
-                    "§7Tower defense, de 1 à 4 joueurs.".to_owned(),
+                    "§7Tower defense, Solo ou Duo, 2 à 12 joueurs.".to_owned(),
                     String::new(),
                     format!("§7En jeu : §a{}", queued.towerwars_playing),
                     format!("§7En file : §b{}", queued.towerwars),
@@ -1001,11 +981,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn towerwars_size_menu_is_one_row_with_wool_at_odd_slots() {
+    fn towerwars_size_menu_is_one_row_with_symmetric_wool() {
         assert_eq!(TOWERWARS_SIZE_ROWS, 1);
         let options = towerwars_size_options();
         let layout: Vec<(u16, u8)> = options.iter().map(|o| (o.slot, o.size)).collect();
-        assert_eq!(layout, vec![(1, 1), (3, 2), (5, 3), (7, 4)]);
+        assert_eq!(layout, vec![(2, 1), (6, 2)]);
         assert!(options.iter().all(|o| o.slot < 9));
     }
 
@@ -1013,23 +993,21 @@ mod tests {
     fn towerwars_size_options_have_french_names_and_lore() {
         let options = towerwars_size_options();
         let names: Vec<&str> = options.iter().map(|o| o.name).collect();
+        assert_eq!(names, vec!["§b§lSolo", "§b§lDuo"]);
+        assert_eq!(options[0].lore[0], "§7Chacun sa voie, 2 à 6 joueurs");
         assert_eq!(
-            names,
-            vec!["§b§lSolo", "§b§lDuo", "§b§lTrio", "§b§lQuatuor"]
+            options[1].lore[0],
+            "§7Équipes de 2 sur une voie, 4 à 12 joueurs"
         );
-        assert_eq!(options[0].lore[0], "§7Démarre immédiatement");
-        assert_eq!(options[1].lore[0], "§7Partie à 2 joueurs");
-        assert_eq!(options[3].lore[0], "§7Partie à 4 joueurs");
         assert!(options.iter().all(|o| o.lore[1].contains("voie")));
     }
 
     #[test]
     fn towerwars_size_click_maps_slot_to_match_size() {
-        assert_eq!(decode_towerwars_size_click(1), Some(1));
-        assert_eq!(decode_towerwars_size_click(3), Some(2));
-        assert_eq!(decode_towerwars_size_click(5), Some(3));
-        assert_eq!(decode_towerwars_size_click(7), Some(4));
+        assert_eq!(decode_towerwars_size_click(2), Some(1));
+        assert_eq!(decode_towerwars_size_click(6), Some(2));
         assert_eq!(decode_towerwars_size_click(0), None);
+        assert_eq!(decode_towerwars_size_click(1), None);
         assert_eq!(decode_towerwars_size_click(4), None);
         assert_eq!(decode_towerwars_size_click(9), None);
         assert_eq!(decode_towerwars_size_click(-1), None);

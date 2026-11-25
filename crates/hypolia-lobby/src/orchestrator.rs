@@ -561,10 +561,10 @@ mod tests {
     #[test]
     fn queue_bodies_carry_the_game() {
         let uuid = Uuid::nil();
-        let join = serde_json::to_value(join_body(uuid, "Alex", GameKind::TowerWars, 3))
+        let join = serde_json::to_value(join_body(uuid, "Alex", GameKind::TowerWars, 2))
             .expect("serialize");
         assert_eq!(join["game"], "tower_wars");
-        assert_eq!(join["match_size"], 3);
+        assert_eq!(join["match_size"], 2);
         let sheep = join_body(uuid, "Alex", GameKind::SheepWars, 0);
         assert_eq!(sheep.match_size, 0);
         let leave = serde_json::to_value(leave_body(
