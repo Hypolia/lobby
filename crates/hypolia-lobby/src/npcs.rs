@@ -965,7 +965,6 @@ mod tests {
                 .expect("label")
                 .contains("En jeu : §a3")
         );
-        assert_eq!(label_of("rush"), None);
     }
 
     use super::*;

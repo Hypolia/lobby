@@ -30,10 +30,6 @@ pub const TOWERWARS_SIZE_ROWS: u8 = 1;
 
 pub const SLOT_SHEEPWARS: u16 = 12;
 pub const SLOT_TOWERWARS: u16 = 14;
-pub const SLOT_PITCHOUT: u16 = 20;
-pub const SLOT_FK: u16 = 21;
-pub const SLOT_PVPSWAP: u16 = 23;
-pub const SLOT_MOUTRON: u16 = 24;
 pub const SLOT_TP_SPAWN: u16 = 29;
 pub const SLOT_TP_PORTAL: u16 = 30;
 pub const SLOT_TP_CAPITAINERIE: u16 = 32;
@@ -61,7 +57,6 @@ pub const GAD_SLOT_CLOSE: u16 = 31;
 pub enum GamesMenuAction {
     JoinSheepWars,
     JoinTowerWars,
-    ComingSoon(&'static str),
     TeleportPoi(&'static str),
     Close,
 }
@@ -89,10 +84,6 @@ pub fn decode_games_click(slot: i32) -> Option<GamesMenuAction> {
     match slot {
         SLOT_SHEEPWARS => Some(GamesMenuAction::JoinSheepWars),
         SLOT_TOWERWARS => Some(GamesMenuAction::JoinTowerWars),
-        SLOT_PITCHOUT => Some(GamesMenuAction::ComingSoon("Pitchout")),
-        SLOT_FK => Some(GamesMenuAction::ComingSoon("Fallen Kingdoms")),
-        SLOT_PVPSWAP => Some(GamesMenuAction::ComingSoon("PvP Swap")),
-        SLOT_MOUTRON => Some(GamesMenuAction::ComingSoon("Moutron")),
         SLOT_TP_SPAWN => Some(GamesMenuAction::TeleportPoi("spawn")),
         SLOT_TP_PORTAL => Some(GamesMenuAction::TeleportPoi("portal")),
         SLOT_TP_CAPITAINERIE => Some(GamesMenuAction::TeleportPoi("capitainerie")),
@@ -259,12 +250,6 @@ pub(crate) fn fill_border(inv: &CustomInventory, rows: u8, accent: Material, neu
     }
 }
 
-fn coming_soon(material: Material, title: &str, line: &str) -> ItemStack {
-    ItemStack::new(material, 1)
-        .name(format!("§7{title} §8• Bientôt"))
-        .lore([format!("§8{line}")])
-}
-
 fn teleport(material: Material, title: &str, line: &str) -> ItemStack {
     ItemStack::new(material, 1)
         .name(format!("§e{title}"))
@@ -308,39 +293,6 @@ pub fn populate_games_menu(inv: &CustomInventory, queued: QueueCounts) {
                 ])
                 .enchant(Enchantment::Unbreaking, 1),
         ),
-    );
-
-    inv.set(
-        SLOT_PITCHOUT,
-        Some(coming_soon(
-            Material::Bow,
-            "Pitchout",
-            "Éjectez vos adversaires de l'arène.",
-        )),
-    );
-    inv.set(
-        SLOT_FK,
-        Some(coming_soon(
-            Material::IronSword,
-            "Fallen Kingdoms",
-            "Défendez votre base, pillez la leur.",
-        )),
-    );
-    inv.set(
-        SLOT_PVPSWAP,
-        Some(coming_soon(
-            Material::EnderPearl,
-            "PvP Swap",
-            "Téléportations imprévisibles.",
-        )),
-    );
-    inv.set(
-        SLOT_MOUTRON,
-        Some(coming_soon(
-            Material::LightBlueWool,
-            "Moutron",
-            "Course de lumière à dos de mouton.",
-        )),
     );
 
     inv.set(
