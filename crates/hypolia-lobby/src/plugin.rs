@@ -1139,12 +1139,6 @@ impl HypoliaLobby {
                 match action {
                     GamesMenuAction::JoinSheepWars => self.join_sheepwars(player),
                     GamesMenuAction::JoinTowerWars => self.join_towerwars(player),
-                    GamesMenuAction::ComingSoon(game) => {
-                        player.inventory.close();
-                        player.message.send(format!(
-                            "§6§lHypolia §8» §e{game} §7arrive très prochainement sur le réseau !"
-                        ));
-                    }
                     GamesMenuAction::TeleportPoi(poi) => self.teleport_to_poi(player, poi),
                     GamesMenuAction::Close => player.inventory.close(),
                 }

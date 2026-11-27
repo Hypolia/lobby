@@ -46,60 +46,6 @@
   },
   "pedestals": [
     {
-      "index": 1,
-      "id": "rush",
-      "npc_name": "Jeu_Rush",
-      "title": "§6§lRush",
-      "subtitle": "§7Bientôt disponible",
-      "game_id": "rush",
-      "active": false,
-      "main_hand": "minecraft:orange_wool",
-      "off_hand": null,
-      "pose": {
-        "x": 26.5,
-        "y": 27.0,
-        "z": -70.5,
-        "yaw": 105.0,
-        "pitch": 0.0
-      }
-    },
-    {
-      "index": 2,
-      "id": "pitchout",
-      "npc_name": "Jeu_Pitchout",
-      "title": "§b§lPitchout",
-      "subtitle": "§7Bientôt disponible",
-      "game_id": "pitchout",
-      "active": false,
-      "main_hand": "minecraft:bow",
-      "off_hand": "minecraft:feather",
-      "pose": {
-        "x": 26.5,
-        "y": 27.0,
-        "z": -61.5,
-        "yaw": 115.0,
-        "pitch": 0.0
-      }
-    },
-    {
-      "index": 3,
-      "id": "fk",
-      "npc_name": "Jeu_FK",
-      "title": "§e§lFallen Kingdoms",
-      "subtitle": "§7Bientôt disponible",
-      "game_id": "fallen_kingdoms",
-      "active": false,
-      "main_hand": "minecraft:iron_sword",
-      "off_hand": "minecraft:shield",
-      "pose": {
-        "x": 22.5,
-        "y": 27.0,
-        "z": -52.5,
-        "yaw": 145.0,
-        "pitch": 0.0
-      }
-    },
-    {
       "index": 4,
       "id": "sheepwars",
       "npc_name": "SheepWars",
@@ -114,42 +60,6 @@
         "y": 27.0,
         "z": -48.5,
         "yaw": 180.0,
-        "pitch": 0.0
-      }
-    },
-    {
-      "index": 5,
-      "id": "pvpswap",
-      "npc_name": "Jeu_PvPSwap",
-      "title": "§5§lPvP Swap",
-      "subtitle": "§7Bientôt disponible",
-      "game_id": "pvp_swap",
-      "active": false,
-      "main_hand": "minecraft:ender_pearl",
-      "off_hand": "minecraft:diamond_sword",
-      "pose": {
-        "x": 4.5,
-        "y": 27.0,
-        "z": -52.5,
-        "yaw": -145.0,
-        "pitch": 0.0
-      }
-    },
-    {
-      "index": 6,
-      "id": "moutron",
-      "npc_name": "Jeu_Moutron",
-      "title": "§3§lMoutron",
-      "subtitle": "§7Bientôt disponible",
-      "game_id": "moutron",
-      "active": false,
-      "main_hand": "minecraft:light_blue_wool",
-      "off_hand": null,
-      "pose": {
-        "x": 0.5,
-        "y": 27.0,
-        "z": -61.5,
-        "yaw": -115.0,
         "pitch": 0.0
       }
     },

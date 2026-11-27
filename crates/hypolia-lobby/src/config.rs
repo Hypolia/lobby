@@ -349,44 +349,8 @@ impl Default for LobbyLayout {
             WaypointPose::new(-49.5, 62.0, 60.5, -145.0, 12.0),
         );
 
-        // Coordonnées exactes des 7 socles white_concrete (Y=26 -> pose Y=27.0) de la Grande Galerie au tapis rouge
+        // Coordonnées exactes des 2 socles white_concrete (Y=26 -> pose Y=27.0) de la Grande Galerie au tapis rouge
         let pedestals = vec![
-            PedestalSpec {
-                index: 1,
-                id: "rush".to_owned(),
-                npc_name: "Jeu_Rush".to_owned(),
-                title: "§6§lRush".to_owned(),
-                subtitle: "§7Bientôt disponible".to_owned(),
-                game_id: "rush".to_owned(),
-                active: false,
-                main_hand: "minecraft:orange_wool".to_owned(),
-                off_hand: None,
-                pose: WaypointPose::new(26.5, 27.0, -70.5, 105.0, 0.0),
-            },
-            PedestalSpec {
-                index: 2,
-                id: "pitchout".to_owned(),
-                npc_name: "Jeu_Pitchout".to_owned(),
-                title: "§b§lPitchout".to_owned(),
-                subtitle: "§7Bientôt disponible".to_owned(),
-                game_id: "pitchout".to_owned(),
-                active: false,
-                main_hand: "minecraft:bow".to_owned(),
-                off_hand: Some("minecraft:feather".to_owned()),
-                pose: WaypointPose::new(26.5, 27.0, -61.5, 115.0, 0.0),
-            },
-            PedestalSpec {
-                index: 3,
-                id: "fk".to_owned(),
-                npc_name: "Jeu_FK".to_owned(),
-                title: "§e§lFallen Kingdoms".to_owned(),
-                subtitle: "§7Bientôt disponible".to_owned(),
-                game_id: "fallen_kingdoms".to_owned(),
-                active: false,
-                main_hand: "minecraft:iron_sword".to_owned(),
-                off_hand: Some("minecraft:shield".to_owned()),
-                pose: WaypointPose::new(22.5, 27.0, -52.5, 145.0, 0.0),
-            },
             PedestalSpec {
                 index: 4,
                 id: "sheepwars".to_owned(),
@@ -398,30 +362,6 @@ impl Default for LobbyLayout {
                 main_hand: "minecraft:white_wool".to_owned(),
                 off_hand: Some("minecraft:bow".to_owned()),
                 pose: WaypointPose::new(13.5, 27.0, -48.5, 180.0, 0.0),
-            },
-            PedestalSpec {
-                index: 5,
-                id: "pvpswap".to_owned(),
-                npc_name: "Jeu_PvPSwap".to_owned(),
-                title: "§5§lPvP Swap".to_owned(),
-                subtitle: "§7Bientôt disponible".to_owned(),
-                game_id: "pvp_swap".to_owned(),
-                active: false,
-                main_hand: "minecraft:ender_pearl".to_owned(),
-                off_hand: Some("minecraft:diamond_sword".to_owned()),
-                pose: WaypointPose::new(4.5, 27.0, -52.5, -145.0, 0.0),
-            },
-            PedestalSpec {
-                index: 6,
-                id: "moutron".to_owned(),
-                npc_name: "Jeu_Moutron".to_owned(),
-                title: "§3§lMoutron".to_owned(),
-                subtitle: "§7Bientôt disponible".to_owned(),
-                game_id: "moutron".to_owned(),
-                active: false,
-                main_hand: "minecraft:light_blue_wool".to_owned(),
-                off_hand: None,
-                pose: WaypointPose::new(0.5, 27.0, -61.5, -115.0, 0.0),
             },
             PedestalSpec {
                 index: 7,
@@ -605,10 +545,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_layout_has_seven_pedestals_with_sheepwars_at_center() {
+    fn default_layout_has_two_pedestals_with_sheepwars_at_index_4() {
         let layout = LobbyLayout::default();
-        assert_eq!(layout.pedestals.len(), 7);
-        let center = &layout.pedestals[3];
+        assert_eq!(layout.pedestals.len(), 2);
+        let center = &layout.pedestals[0];
         assert_eq!(center.index, 4);
         assert_eq!(center.game_id, "sheepwars");
         assert!(center.active);
