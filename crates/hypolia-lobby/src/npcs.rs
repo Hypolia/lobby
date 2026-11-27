@@ -669,6 +669,20 @@ impl NpcDirector {
     }
 
     async fn sync_pedestals(&self, world: &World, layout: &LobbyLayout, queued: QueueCounts) {
+        let keep_ids: HashSet<&str> = layout.pedestals.iter().map(|s| s.id.as_str()).collect();
+        let stale: Vec<Npc> = {
+            let mut guard = self.pedestals.write().unwrap_or_else(|e| e.into_inner());
+            let stale: Vec<Npc> = guard
+                .iter()
+                .filter(|a| !keep_ids.contains(a.spec.id.as_str()))
+                .map(|a| a.npc.clone())
+                .collect();
+            guard.retain(|a| keep_ids.contains(a.spec.id.as_str()));
+            stale
+        };
+        for npc in stale {
+            npc.remove();
+        }
         let mut actors = Vec::with_capacity(layout.pedestals.len());
         for spec in &layout.pedestals {
             let key = format!("pedestal:{}", spec.id);
@@ -709,6 +723,24 @@ impl NpcDirector {
     }
 
     async fn sync_ambients(&self, world: &World, layout: &LobbyLayout) {
+        let keep_ids: HashSet<&str> = layout
+            .ambient_npcs
+            .iter()
+            .map(|s| s.id.as_str())
+            .collect();
+        let stale: Vec<Npc> = {
+            let mut guard = self.ambients.write().unwrap_or_else(|e| e.into_inner());
+            let stale: Vec<Npc> = guard
+                .iter()
+                .filter(|a| !keep_ids.contains(a.spec.id.as_str()))
+                .map(|a| a.npc.clone())
+                .collect();
+            guard.retain(|a| keep_ids.contains(a.spec.id.as_str()));
+            stale
+        };
+        for npc in stale {
+            npc.remove();
+        }
         let mut actors = Vec::with_capacity(layout.ambient_npcs.len());
         for spec in &layout.ambient_npcs {
             let start = spec.waypoints.first().copied().unwrap_or(layout.spawn);
