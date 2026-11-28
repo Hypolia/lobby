@@ -80,12 +80,24 @@ pub fn reconcile(configured: bool, tracked: Option<i32>, found: &[i32]) -> Recon
     }
 }
 
+/// Chunk holding a block position. The server only summons entities in loaded
+/// chunks, and the lobby is often empty, so the board's chunk is force loaded.
+pub fn chunk_of(x: f64, z: f64) -> (i32, i32) {
+    ((x / 16.0).floor() as i32, (z / 16.0).floor() as i32)
+}
+
+#[derive(Debug, Default)]
+struct Slot {
+    display: Option<i32>,
+    chunk: Option<(i32, i32)>,
+}
+
 pub struct LeaderboardHud {
     layout: Arc<LayoutStore>,
     orchestrator: Option<Arc<OrchestratorClient>>,
     cache: RwLock<BTreeMap<GameKind, Leaderboard>>,
     shown: AtomicUsize,
-    display: Mutex<Option<i32>>,
+    slot: Mutex<Slot>,
 }
 
 impl LeaderboardHud {
@@ -95,7 +107,7 @@ impl LeaderboardHud {
             orchestrator,
             cache: RwLock::new(BTreeMap::new()),
             shown: AtomicUsize::new(0),
-            display: Mutex::new(None),
+            slot: Mutex::new(Slot::default()),
         }
     }
 
@@ -152,7 +164,23 @@ impl LeaderboardHud {
         if spot.is_some() && !self.has_data() {
             self.refresh().await;
         }
-        let mut tracked = self.display.lock().await;
+        let mut slot = self.slot.lock().await;
+        let wanted_chunk = spot.map(|s| chunk_of(s.x, s.z));
+        if slot.chunk != wanted_chunk {
+            if let Some((x, z)) = slot.chunk {
+                world.chunks.at(x, z).set_force_loaded(false);
+            }
+            if let Some((x, z)) = wanted_chunk {
+                world.chunks.at(x, z).set_force_loaded(true);
+            }
+            slot.chunk = wanted_chunk;
+        }
+        if let Some((x, z)) = wanted_chunk
+            && let Err(err) = world.chunks.at(x, z).get_state(true).await
+        {
+            tracing::warn!("Impossible de charger le chunk du tableau : {err}");
+            return;
+        }
         let found = match world.entities.with_meta(META_KEY).await {
             Ok(entities) => entities,
             Err(err) => {
@@ -161,12 +189,12 @@ impl LeaderboardHud {
             }
         };
         let ids: Vec<i32> = found.iter().map(|e| e.entity_id).collect();
-        let plan = reconcile(spot.is_some(), *tracked, &ids);
+        let plan = reconcile(spot.is_some(), slot.display, &ids);
         for entity in found.iter().filter(|e| plan.remove.contains(&e.entity_id)) {
             entity.remove();
         }
         let Some(spot) = spot else {
-            *tracked = None;
+            slot.display = None;
             return;
         };
         if plan.spawn {
@@ -177,22 +205,22 @@ impl LeaderboardHud {
             {
                 Ok(entity) => {
                     entity.meta.set(META_KEY, true);
-                    *tracked = Some(entity.entity_id);
+                    slot.display = Some(entity.entity_id);
                 }
                 Err(err) => {
-                    *tracked = None;
+                    slot.display = None;
                     tracing::warn!("Impossible de placer le tableau de classement : {err}");
                 }
             }
-        } else if let Some(entity) = found.iter().find(|e| Some(e.entity_id) == *tracked) {
+        } else if let Some(entity) = found.iter().find(|e| Some(e.entity_id) == slot.display) {
             entity.teleport(spot.position());
             entity.display.edit(self.spec());
         }
     }
 
     async fn redraw(&self, world: &World) {
-        let tracked = self.display.lock().await;
-        let Some(id) = *tracked else {
+        let slot = self.slot.lock().await;
+        let Some(id) = slot.display else {
             return;
         };
         match world.entities.with_meta(META_KEY).await {
@@ -216,7 +244,7 @@ impl LeaderboardHud {
                 _ = refresh.tick() => {
                     if self.layout.snapshot().leaderboard.is_some() {
                         self.refresh().await;
-                        self.redraw(&server.world).await;
+                        self.sync(&server.world).await;
                     }
                 }
                 _ = rotate.tick() => {
@@ -304,6 +332,14 @@ mod tests {
     fn data_never_received_reads_unavailable() {
         let text = format_board(GameKind::SheepWars, None);
         assert!(text.ends_with("\n§7Classement indisponible"));
+    }
+
+    #[test]
+    fn chunk_of_a_block_position() {
+        assert_eq!(chunk_of(27.5, -84.5), (1, -6));
+        assert_eq!(chunk_of(0.0, 0.0), (0, 0));
+        assert_eq!(chunk_of(15.9, 16.0), (0, 1));
+        assert_eq!(chunk_of(-0.5, -16.5), (-1, -2));
     }
 
     #[test]
