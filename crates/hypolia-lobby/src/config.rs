@@ -476,7 +476,7 @@ impl Default for LobbyLayout {
                 WaypointPose::new(32.5, 24.0, -31.5, -45.0, 12.0),
                 WaypointPose::new(28.5, 24.0, -31.5, 0.0, 12.0),
             ],
-            leaderboard: None,
+            leaderboard: Some(WaypointPose::new(27.5, 32.0, -84.5, 0.0, 0.0)),
         }
     }
 }
@@ -550,7 +550,6 @@ mod tests {
     #[test]
     fn a_layout_stored_before_the_leaderboard_still_loads_without_one() {
         let mut value = serde_json::to_value(LobbyLayout::default()).expect("json");
-        assert!(value.get("leaderboard").is_none());
         value.as_object_mut().expect("object").remove("leaderboard");
         let layout: LobbyLayout = serde_json::from_value(value).expect("loads");
         assert_eq!(layout.leaderboard, None);
