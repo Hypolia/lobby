@@ -30,6 +30,7 @@ pub const TOWERWARS_SIZE_ROWS: u8 = 1;
 
 pub const SLOT_SHEEPWARS: u16 = 12;
 pub const SLOT_TOWERWARS: u16 = 14;
+pub const SLOT_DEACOUDRE: u16 = 22;
 pub const SLOT_TP_SPAWN: u16 = 29;
 pub const SLOT_TP_PORTAL: u16 = 30;
 pub const SLOT_TP_CAPITAINERIE: u16 = 32;
@@ -57,6 +58,7 @@ pub const GAD_SLOT_CLOSE: u16 = 31;
 pub enum GamesMenuAction {
     JoinSheepWars,
     JoinTowerWars,
+    JoinDeACoudre,
     TeleportPoi(&'static str),
     Close,
 }
@@ -84,6 +86,7 @@ pub fn decode_games_click(slot: i32) -> Option<GamesMenuAction> {
     match slot {
         SLOT_SHEEPWARS => Some(GamesMenuAction::JoinSheepWars),
         SLOT_TOWERWARS => Some(GamesMenuAction::JoinTowerWars),
+        SLOT_DEACOUDRE => Some(GamesMenuAction::JoinDeACoudre),
         SLOT_TP_SPAWN => Some(GamesMenuAction::TeleportPoi("spawn")),
         SLOT_TP_PORTAL => Some(GamesMenuAction::TeleportPoi("portal")),
         SLOT_TP_CAPITAINERIE => Some(GamesMenuAction::TeleportPoi("capitainerie")),
@@ -289,6 +292,21 @@ pub fn populate_games_menu(inv: &CustomInventory, queued: QueueCounts) {
                     String::new(),
                     format!("§7En jeu : §a{}", queued.towerwars_playing),
                     format!("§7En file : §b{}", queued.towerwars),
+                    "§a▶ Cliquez pour jouer".to_owned(),
+                ])
+                .enchant(Enchantment::Unbreaking, 1),
+        ),
+    );
+    inv.set(
+        SLOT_DEACOUDRE,
+        Some(
+            ItemStack::new(Material::WaterBucket, 1)
+                .name("§6§lDé à coudre")
+                .lore([
+                    "§7Sautez dans le bassin, solo, jusqu'à 8 joueurs.".to_owned(),
+                    String::new(),
+                    format!("§7En jeu : §a{}", queued.deacoudre_playing),
+                    format!("§7En file : §6{}", queued.deacoudre),
                     "§a▶ Cliquez pour jouer".to_owned(),
                 ])
                 .enchant(Enchantment::Unbreaking, 1),
@@ -974,6 +992,10 @@ mod tests {
         assert_eq!(
             decode_games_click(i32::from(SLOT_TOWERWARS)),
             Some(GamesMenuAction::JoinTowerWars)
+        );
+        assert_eq!(
+            decode_games_click(i32::from(SLOT_DEACOUDRE)),
+            Some(GamesMenuAction::JoinDeACoudre)
         );
         assert_eq!(
             decode_games_click(i32::from(SLOT_TP_PORTAL)),

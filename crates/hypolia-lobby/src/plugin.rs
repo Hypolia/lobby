@@ -712,6 +712,10 @@ impl HypoliaLobby {
         self.join_game(player, GameKind::SheepWars, 0);
     }
 
+    fn join_deacoudre(&self, player: Player) {
+        self.join_game(player, GameKind::DeACoudre, 0);
+    }
+
     fn join_towerwars(&self, player: Player) {
         let lobby = self.clone();
         tokio::spawn(async move {
@@ -1147,6 +1151,7 @@ impl HypoliaLobby {
                 match action {
                     GamesMenuAction::JoinSheepWars => self.join_sheepwars(player),
                     GamesMenuAction::JoinTowerWars => self.join_towerwars(player),
+                    GamesMenuAction::JoinDeACoudre => self.join_deacoudre(player),
                     GamesMenuAction::TeleportPoi(poi) => self.teleport_to_poi(player, poi),
                     GamesMenuAction::Close => player.inventory.close(),
                 }
@@ -1673,6 +1678,7 @@ const fn game_tag(game: GameKind) -> &'static str {
     match game {
         GameKind::SheepWars => "§d§lSheepWars",
         GameKind::TowerWars => "§b§lTowerWars",
+        GameKind::DeACoudre => "§6§lDé à coudre",
     }
 }
 
@@ -2071,6 +2077,7 @@ impl HypoliaLobby {
             let pitch = match game {
                 GameKind::SheepWars => 1.0,
                 GameKind::TowerWars => 1.4,
+                GameKind::DeACoudre => 1.8,
             };
             player
                 .sound
@@ -2681,6 +2688,11 @@ impl HypoliaLobby {
     #[command("towerwars")]
     async fn cmd_towerwars(&self, ctx: Context) {
         self.join_towerwars(ctx.sender.clone());
+    }
+
+    #[command("deacoudre")]
+    async fn cmd_deacoudre(&self, ctx: Context) {
+        self.join_deacoudre(ctx.sender.clone());
     }
 
     #[command("sheepwars")]

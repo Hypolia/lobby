@@ -11,8 +11,11 @@ pub const PROFILE_ROWS: u8 = 5;
 pub const SHOP_ROWS: u8 = 5;
 
 pub const PROFILE_SLOT_INFO: u16 = 13;
-pub const PROFILE_STATS_SLOTS: [(u16, GameKind); 2] =
-    [(21, GameKind::SheepWars), (23, GameKind::TowerWars)];
+pub const PROFILE_STATS_SLOTS: [(u16, GameKind); 3] = [
+    (20, GameKind::SheepWars),
+    (22, GameKind::TowerWars),
+    (24, GameKind::DeACoudre),
+];
 pub const PROFILE_SLOT_SETTINGS: u16 = 29;
 pub const PROFILE_SLOT_FERRISKEY: u16 = 31;
 pub const PROFILE_SLOT_SHOP: u16 = 33;
@@ -169,6 +172,7 @@ pub const fn game_label(game: GameKind) -> &'static str {
     match game {
         GameKind::SheepWars => "SheepWars",
         GameKind::TowerWars => "TowerWars",
+        GameKind::DeACoudre => "Dé à coudre",
     }
 }
 
@@ -255,6 +259,7 @@ const fn game_material(game: GameKind) -> Material {
     match game {
         GameKind::SheepWars => Material::WhiteWool,
         GameKind::TowerWars => Material::Crossbow,
+        GameKind::DeACoudre => Material::WaterBucket,
     }
 }
 

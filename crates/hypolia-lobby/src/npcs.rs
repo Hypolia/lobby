@@ -31,6 +31,7 @@ pub fn pedestal_label(spec: &PedestalSpec, queued: QueueCounts) -> Option<String
     let color = match game {
         GameKind::SheepWars => "§d",
         GameKind::TowerWars => "§b",
+        GameKind::DeACoudre => "§6",
     };
     Some(format!(
         "{}\n§fEn jeu : §a{} §8• §fEn file : {color}{}\n{}",
@@ -723,11 +724,7 @@ impl NpcDirector {
     }
 
     async fn sync_ambients(&self, world: &World, layout: &LobbyLayout) {
-        let keep_ids: HashSet<&str> = layout
-            .ambient_npcs
-            .iter()
-            .map(|s| s.id.as_str())
-            .collect();
+        let keep_ids: HashSet<&str> = layout.ambient_npcs.iter().map(|s| s.id.as_str()).collect();
         let stale: Vec<Npc> = {
             let mut guard = self.ambients.write().unwrap_or_else(|e| e.into_inner());
             let stale: Vec<Npc> = guard
@@ -978,8 +975,10 @@ mod tests {
         let counts = QueueCounts {
             sheepwars: 2,
             towerwars: 7,
+            deacoudre: 4,
             sheepwars_playing: 6,
             towerwars_playing: 3,
+            deacoudre_playing: 5,
         };
         let label_of = |id: &str| {
             let spec = layout.pedestals.iter().find(|p| p.id == id).expect("spec");
@@ -987,6 +986,12 @@ mod tests {
         };
         assert!(label_of("sheepwars").expect("label").contains("§d2"));
         assert!(label_of("towerwars").expect("label").contains("§b7"));
+        assert!(label_of("deacoudre").expect("label").contains("§64"));
+        assert!(
+            label_of("deacoudre")
+                .expect("label")
+                .contains("En jeu : §a5")
+        );
         assert!(
             label_of("sheepwars")
                 .expect("label")

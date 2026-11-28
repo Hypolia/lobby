@@ -181,12 +181,16 @@ pub async fn load_or_seed<R: LayoutRepository>(
     let stored = retry_unavailable(backoff, "chargement du layout", || repo.load()).await?;
     match stored {
         Some(mut layout) => {
-            let towerwars_added = add_missing_towerwars_pedestal(&mut layout, seed);
+            let towerwars_added = add_missing_pedestal(&mut layout, seed, "towerwars");
+            let deacoudre_added = add_missing_pedestal(&mut layout, seed, "deacoudre");
             let leaderboard_added = add_missing_leaderboard(&mut layout, seed);
-            if towerwars_added || leaderboard_added {
+            if towerwars_added || deacoudre_added || leaderboard_added {
                 retry_unavailable(backoff, "migration du layout", || repo.save(&layout)).await?;
                 if towerwars_added {
                     tracing::info!("Piédestal TowerWars ajouté au layout stocké");
+                }
+                if deacoudre_added {
+                    tracing::info!("Piédestal Dé à coudre ajouté au layout stocké");
                 }
                 if leaderboard_added {
                     tracing::info!(
@@ -215,19 +219,24 @@ fn add_missing_leaderboard(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool
     false
 }
 
-fn add_missing_towerwars_pedestal(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool {
-    const ID: &str = "towerwars";
-    if layout.pedestals.iter().any(|p| p.id == ID) {
+fn add_missing_pedestal(layout: &mut LobbyLayout, seed: &LobbyLayout, id: &str) -> bool {
+    if layout.pedestals.iter().any(|p| p.id == id) {
         return false;
     }
-    let Some(wanted) = seed.pedestals.iter().find(|p| p.id == ID) else {
+    let Some(wanted) = seed.pedestals.iter().find(|p| p.id == id) else {
         return false;
     };
-    if let Some(legacy) = layout
+    let placeholder = layout
         .pedestals
-        .iter_mut()
-        .find(|p| p.id == "uhc" && !p.active)
-    {
+        .iter()
+        .position(|p| !p.active && p.index == wanted.index)
+        .or_else(|| {
+            layout
+                .pedestals
+                .iter()
+                .position(|p| p.id == "uhc" && !p.active)
+        });
+    if let Some(legacy) = placeholder.map(|i| &mut layout.pedestals[i]) {
         let mut upgraded = wanted.clone();
         upgraded.index = legacy.index;
         upgraded.pose = legacy.pose;
