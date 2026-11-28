@@ -2057,6 +2057,22 @@ impl HypoliaLobby {
             return;
         }
         let player = event.player().clone();
+        if self
+            .state
+            .leaderboard
+            .is_hitbox(event.right_clicked().entity_id)
+            .await
+        {
+            let game = self
+                .state
+                .leaderboard
+                .switch_game(&player.server().world)
+                .await;
+            player
+                .action_bar
+                .send(format!("§7Classement : {}", game_tag(game)));
+            return;
+        }
         let Some(target) = self
             .state
             .npcs

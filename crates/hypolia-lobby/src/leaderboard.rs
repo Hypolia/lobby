@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 use std::time::Duration;
 
 use hypolia_protocol::{GameKind, Leaderboard, LeaderboardEntry};
-use rspigot_plugin::{Billboard, DisplayProps, Server, TextDisplay, World};
+use rspigot_plugin::{Billboard, DisplayProps, Entity, InteractionBox, Server, TextDisplay, World};
 use tokio::sync::Mutex;
 use tokio::time::{Instant, MissedTickBehavior, interval_at};
 
@@ -14,8 +14,14 @@ use crate::progress_menus::game_label;
 
 pub const BOARD_SIZE: u32 = 10;
 pub const REFRESH_INTERVAL: Duration = Duration::from_secs(60);
-pub const ROTATE_INTERVAL: Duration = Duration::from_secs(8);
 const META_KEY: &str = "hypolia:leaderboard";
+const HITBOX_KEY: &str = "hypolia:leaderboard-hitbox";
+const FOOTER: &str = "§8Clic droit : changer de jeu";
+/// Title, game, one line per rank and the footer: the board is always this tall.
+pub const BOARD_LINES: usize = BOARD_SIZE as usize + 3;
+const LINE_HEIGHT: f32 = 0.25;
+const HITBOX_WIDTH: f32 = 3.5;
+const HITBOX_HEIGHT: f32 = BOARD_LINES as f32 * LINE_HEIGHT + 0.1;
 
 const fn game_color(game: GameKind) -> &'static str {
     match game {
@@ -57,6 +63,8 @@ pub fn format_board(game: GameKind, board: Option<&Leaderboard>) -> String {
                 .map(format_entry),
         ),
     }
+    lines.resize(BOARD_LINES - 1, " ".to_owned());
+    lines.push(FOOTER.to_owned());
     lines.join("\n")
 }
 
@@ -89,7 +97,54 @@ pub fn chunk_of(x: f64, z: f64) -> (i32, i32) {
 #[derive(Debug, Default)]
 struct Slot {
     display: Option<i32>,
+    hitbox: Option<i32>,
     chunk: Option<(i32, i32)>,
+}
+
+struct Scan {
+    plan: Reconcile,
+    found: Vec<Entity>,
+}
+
+impl Scan {
+    fn tracked(&self, id: Option<i32>) -> Option<&Entity> {
+        self.found.iter().find(|e| Some(e.entity_id) == id)
+    }
+}
+
+/// Lists the entities carrying `key`, and removes the ones that must not stay.
+async fn scan(world: &World, key: &str, configured: bool, tracked: Option<i32>) -> Option<Scan> {
+    let found = match world.entities.with_meta(key).await {
+        Ok(found) => found,
+        Err(err) => {
+            tracing::warn!("Impossible de lister les entités {key} : {err}");
+            return None;
+        }
+    };
+    let ids: Vec<i32> = found.iter().map(|e| e.entity_id).collect();
+    let plan = reconcile(configured, tracked, &ids);
+    for entity in found.iter().filter(|e| plan.remove.contains(&e.entity_id)) {
+        entity.remove();
+    }
+    Some(Scan { plan, found })
+}
+
+async fn spawn_marked(
+    world: &World,
+    key: &str,
+    position: rspigot_plugin::Position,
+    spec: impl Into<rspigot_plugin::DisplaySpec>,
+) -> Option<i32> {
+    match world.objects.spawn_display(position, spec).await {
+        Ok(entity) => {
+            entity.meta.set(key, true);
+            Some(entity.entity_id)
+        }
+        Err(err) => {
+            tracing::warn!("Impossible de placer {key} : {err}");
+            None
+        }
+    }
 }
 
 pub struct LeaderboardHud {
@@ -117,6 +172,17 @@ impl LeaderboardHud {
 
     fn advance(&self) {
         self.shown.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub async fn is_hitbox(&self, entity_id: i32) -> bool {
+        self.slot.lock().await.hitbox == Some(entity_id)
+    }
+
+    /// Shows the next game on the board, for every player.
+    pub async fn switch_game(&self, world: &World) -> GameKind {
+        self.advance();
+        self.redraw(world).await;
+        self.shown_game()
     }
 
     pub fn text(&self) -> String {
@@ -181,40 +247,29 @@ impl LeaderboardHud {
             tracing::warn!("Impossible de charger le chunk du tableau : {err}");
             return;
         }
-        let found = match world.entities.with_meta(META_KEY).await {
-            Ok(entities) => entities,
-            Err(err) => {
-                tracing::warn!("Impossible de lister les tableaux de classement : {err}");
-                return;
-            }
-        };
-        let ids: Vec<i32> = found.iter().map(|e| e.entity_id).collect();
-        let plan = reconcile(spot.is_some(), slot.display, &ids);
-        for entity in found.iter().filter(|e| plan.remove.contains(&e.entity_id)) {
-            entity.remove();
-        }
-        let Some(spot) = spot else {
-            slot.display = None;
+        let Some(board) = scan(world, META_KEY, spot.is_some(), slot.display).await else {
             return;
         };
-        if plan.spawn {
-            match world
-                .objects
-                .spawn_display(spot.position(), self.spec())
-                .await
-            {
-                Ok(entity) => {
-                    entity.meta.set(META_KEY, true);
-                    slot.display = Some(entity.entity_id);
-                }
-                Err(err) => {
-                    slot.display = None;
-                    tracing::warn!("Impossible de placer le tableau de classement : {err}");
-                }
-            }
-        } else if let Some(entity) = found.iter().find(|e| Some(e.entity_id) == slot.display) {
-            entity.teleport(spot.position());
+        let Some(hitbox) = scan(world, HITBOX_KEY, spot.is_some(), slot.hitbox).await else {
+            return;
+        };
+        let Some(spot) = spot else {
+            slot.display = None;
+            slot.hitbox = None;
+            return;
+        };
+        let position = spot.position();
+        if board.plan.spawn {
+            slot.display = spawn_marked(world, META_KEY, position, self.spec()).await;
+        } else if let Some(entity) = board.tracked(slot.display) {
+            entity.teleport(position);
             entity.display.edit(self.spec());
+        }
+        let area = || InteractionBox::new(HITBOX_WIDTH, HITBOX_HEIGHT).response(true);
+        if hitbox.plan.spawn {
+            slot.hitbox = spawn_marked(world, HITBOX_KEY, position, area()).await;
+        } else if let Some(entity) = hitbox.tracked(slot.hitbox) {
+            entity.teleport(position);
         }
     }
 
@@ -236,21 +291,12 @@ impl LeaderboardHud {
     pub async fn run(self: Arc<Self>, server: Server) {
         self.sync(&server.world).await;
         let mut refresh = interval_at(Instant::now() + REFRESH_INTERVAL, REFRESH_INTERVAL);
-        let mut rotate = interval_at(Instant::now() + ROTATE_INTERVAL, ROTATE_INTERVAL);
         refresh.set_missed_tick_behavior(MissedTickBehavior::Delay);
-        rotate.set_missed_tick_behavior(MissedTickBehavior::Delay);
         loop {
-            tokio::select! {
-                _ = refresh.tick() => {
-                    if self.layout.snapshot().leaderboard.is_some() {
-                        self.refresh().await;
-                        self.sync(&server.world).await;
-                    }
-                }
-                _ = rotate.tick() => {
-                    self.advance();
-                    self.redraw(&server.world).await;
-                }
+            refresh.tick().await;
+            if self.layout.snapshot().leaderboard.is_some() {
+                self.refresh().await;
+                self.sync(&server.world).await;
             }
         }
     }
@@ -287,16 +333,38 @@ mod tests {
         );
     }
 
+    fn lines_of(text: &str) -> Vec<&str> {
+        text.split('\n').collect()
+    }
+
     #[test]
-    fn a_board_has_a_title_the_game_and_one_line_per_entry() {
+    fn a_board_has_a_title_the_game_the_entries_and_a_footer() {
         let entries = vec![entry(1, "Alex", 42), entry(2, "Bob", 7)];
         let text = format_board(
             GameKind::SheepWars,
             Some(&board(GameKind::SheepWars, entries)),
         );
+        let lines = lines_of(&text);
+        assert_eq!(lines[0], "§6§lMEILLEURS JOUEURS");
+        assert_eq!(lines[1], "§dSheepWars §7· victoires");
+        assert_eq!(lines[2], "§e1. §fAlex §7— §a42");
+        assert_eq!(lines[3], "§e2. §fBob §7— §a7");
+        assert_eq!(lines[4], " ");
+        assert_eq!(lines[BOARD_LINES - 1], "§8Clic droit : changer de jeu");
+    }
+
+    #[test]
+    fn the_board_is_always_as_tall_whatever_the_number_of_players() {
+        for count in [0, 1, 9, 10, 15] {
+            let entries: Vec<_> = (1..=count).map(|r| entry(r, "P", 1)).collect();
+            for game in GameKind::ALL {
+                let text = format_board(game, Some(&board(game, entries.clone())));
+                assert_eq!(lines_of(&text).len(), BOARD_LINES, "{count} players");
+            }
+        }
         assert_eq!(
-            text,
-            "§6§lMEILLEURS JOUEURS\n§dSheepWars §7· victoires\n§e1. §fAlex §7— §a42\n§e2. §fBob §7— §a7"
+            lines_of(&format_board(GameKind::SheepWars, None)).len(),
+            BOARD_LINES
         );
     }
 
@@ -310,13 +378,14 @@ mod tests {
     }
 
     #[test]
-    fn a_board_never_shows_more_than_ten_lines() {
+    fn a_board_never_shows_more_than_ten_ranks() {
         let entries = (1..=15).map(|r| entry(r, "P", 1)).collect();
         let text = format_board(
             GameKind::SheepWars,
             Some(&board(GameKind::SheepWars, entries)),
         );
-        assert_eq!(text.lines().count(), 2 + 10);
+        assert!(text.contains("§e10. "));
+        assert!(!text.contains("§e11. "));
     }
 
     #[test]
@@ -325,13 +394,13 @@ mod tests {
             GameKind::SheepWars,
             Some(&board(GameKind::SheepWars, vec![])),
         );
-        assert!(text.ends_with("\n§7Aucune partie gagnée pour l'instant"));
+        assert_eq!(lines_of(&text)[2], "§7Aucune partie gagnée pour l'instant");
     }
 
     #[test]
     fn data_never_received_reads_unavailable() {
         let text = format_board(GameKind::SheepWars, None);
-        assert!(text.ends_with("\n§7Classement indisponible"));
+        assert_eq!(lines_of(&text)[2], "§7Classement indisponible");
     }
 
     #[test]

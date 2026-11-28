@@ -58,6 +58,6 @@ Joueurs :
 Administration (`op` ou permission `hypolia.admin`) :
 - `/build`
 - `/lobby setspawn`, `/lobby setpoi <nom>`, `/lobby setpedestal <1..7>`
-- `/lobby setleaderboard` : place le tableau flottant du top 10 des victoires (SheepWars puis TowerWars, en alternance)
+- `/lobby setleaderboard` : place le tableau flottant du top 10 des victoires (SheepWars ou TowerWars, au clic droit)
 - `/lobby setcaptain`, `/lobby setstation <index>`, `/lobby setwaypoint <pnj> <index>`
 - `/lobby reload`, `/lobby info`
