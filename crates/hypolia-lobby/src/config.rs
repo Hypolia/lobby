@@ -324,6 +324,8 @@ pub struct LobbyLayout {
     pub agent_idle_origin: WaypointPose,
     pub agent_idle_step_x: f64,
     pub agent_workstations: Vec<WaypointPose>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub leaderboard: Option<WaypointPose>,
 }
 
 impl Default for LobbyLayout {
@@ -474,6 +476,7 @@ impl Default for LobbyLayout {
                 WaypointPose::new(32.5, 24.0, -31.5, -45.0, 12.0),
                 WaypointPose::new(28.5, 24.0, -31.5, 0.0, 12.0),
             ],
+            leaderboard: None,
         }
     }
 }
@@ -543,6 +546,27 @@ impl LayoutStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_layout_stored_before_the_leaderboard_still_loads_without_one() {
+        let mut value = serde_json::to_value(LobbyLayout::default()).expect("json");
+        assert!(value.get("leaderboard").is_none());
+        value.as_object_mut().expect("object").remove("leaderboard");
+        let layout: LobbyLayout = serde_json::from_value(value).expect("loads");
+        assert_eq!(layout.leaderboard, None);
+    }
+
+    #[test]
+    fn the_leaderboard_position_survives_a_round_trip() {
+        let spot = WaypointPose::new(1.5, 30.0, -4.5, 90.0, 0.0);
+        let layout = LobbyLayout {
+            leaderboard: Some(spot),
+            ..LobbyLayout::default()
+        };
+        let json = serde_json::to_string(&layout).expect("json");
+        let back: LobbyLayout = serde_json::from_str(&json).expect("loads");
+        assert_eq!(back.leaderboard, Some(spot));
+    }
 
     #[test]
     fn default_layout_has_two_pedestals_with_sheepwars_at_index_4() {

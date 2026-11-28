@@ -6,6 +6,7 @@ pub mod config;
 pub mod gadgets;
 pub mod heartbeat;
 pub mod hud;
+pub mod leaderboard;
 pub mod lifecycle;
 pub mod menus;
 pub mod network;
