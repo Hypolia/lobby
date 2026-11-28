@@ -2077,6 +2077,7 @@ impl HypoliaLobby {
             let pitch = match game {
                 GameKind::SheepWars => 1.0,
                 GameKind::TowerWars => 1.4,
+                GameKind::DeACoudre => 1.8,
             };
             player
                 .sound
