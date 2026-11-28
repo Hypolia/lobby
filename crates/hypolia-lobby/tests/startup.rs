@@ -120,3 +120,42 @@ async fn stored_layout_without_towerwars_gets_it_in_place_of_the_inactive_uhc_sl
     assert_eq!(layout.spawn, admin_layout().spawn);
     assert_eq!(*repo.saved.lock().expect("lock"), Some(layout));
 }
+
+#[tokio::test]
+async fn stored_layout_without_a_leaderboard_position_gets_the_bundled_one() {
+    let mut stored = admin_layout();
+    stored.leaderboard = None;
+    let repo = Flaky::new(0, Some(stored));
+    let seed = LobbyLayout::default();
+    assert!(seed.leaderboard.is_some());
+    let layout = load_or_seed(&repo, &seed, fast(None)).await.expect("loads");
+    assert_eq!(layout.leaderboard, seed.leaderboard);
+    assert_eq!(*repo.saved.lock().expect("lock"), Some(layout));
+}
+
+#[tokio::test]
+async fn a_leaderboard_position_set_by_an_admin_is_never_overwritten() {
+    let mine = WaypointPose::new(1.5, 40.0, 2.5, 0.0, 0.0);
+    let mut stored = admin_layout();
+    stored.leaderboard = Some(mine);
+    let repo = Flaky::new(0, Some(stored));
+    let layout = load_or_seed(&repo, &LobbyLayout::default(), fast(None))
+        .await
+        .expect("loads");
+    assert_eq!(layout.leaderboard, Some(mine));
+    assert!(repo.saved.lock().expect("lock").is_none());
+}
+
+#[tokio::test]
+async fn a_seed_without_a_position_leaves_the_stored_layout_alone() {
+    let mut stored = admin_layout();
+    stored.leaderboard = None;
+    let seed = LobbyLayout {
+        leaderboard: None,
+        ..LobbyLayout::default()
+    };
+    let repo = Flaky::new(0, Some(stored));
+    let layout = load_or_seed(&repo, &seed, fast(None)).await.expect("loads");
+    assert_eq!(layout.leaderboard, None);
+    assert!(repo.saved.lock().expect("lock").is_none());
+}

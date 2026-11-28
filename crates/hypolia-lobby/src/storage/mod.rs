@@ -181,9 +181,18 @@ pub async fn load_or_seed<R: LayoutRepository>(
     let stored = retry_unavailable(backoff, "chargement du layout", || repo.load()).await?;
     match stored {
         Some(mut layout) => {
-            if add_missing_towerwars_pedestal(&mut layout, seed) {
+            let towerwars_added = add_missing_towerwars_pedestal(&mut layout, seed);
+            let leaderboard_added = add_missing_leaderboard(&mut layout, seed);
+            if towerwars_added || leaderboard_added {
                 retry_unavailable(backoff, "migration du layout", || repo.save(&layout)).await?;
-                tracing::info!("Piédestal TowerWars ajouté au layout stocké");
+                if towerwars_added {
+                    tracing::info!("Piédestal TowerWars ajouté au layout stocké");
+                }
+                if leaderboard_added {
+                    tracing::info!(
+                        "Position du tableau des meilleurs joueurs ajoutée au layout stocké"
+                    );
+                }
             }
             Ok(layout)
         }
@@ -193,6 +202,14 @@ pub async fn load_or_seed<R: LayoutRepository>(
             Ok(seed.clone())
         }
     }
+}
+
+fn add_missing_leaderboard(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool {
+    if layout.leaderboard.is_some() || seed.leaderboard.is_none() {
+        return false;
+    }
+    layout.leaderboard = seed.leaderboard;
+    true
 }
 
 fn add_missing_towerwars_pedestal(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool {
