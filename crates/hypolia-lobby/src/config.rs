@@ -206,6 +206,13 @@ impl EnvConfig {
     }
 }
 
+/// Bottom of the board: one block above the lobby floor at (27, -85).
+pub const LEADERBOARD_SPOT: WaypointPose = WaypointPose::new(27.5, 30.0, -84.5, 0.0, 0.0);
+
+/// First bundled position, three blocks above the floor and too high. A stored
+/// layout still holding it was never moved by an admin and is migrated.
+pub const LEADERBOARD_FIRST_SPOT: WaypointPose = WaypointPose::new(27.5, 32.0, -84.5, 0.0, 0.0);
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct WaypointPose {
     pub x: f64,
@@ -476,7 +483,7 @@ impl Default for LobbyLayout {
                 WaypointPose::new(32.5, 24.0, -31.5, -45.0, 12.0),
                 WaypointPose::new(28.5, 24.0, -31.5, 0.0, 12.0),
             ],
-            leaderboard: Some(WaypointPose::new(27.5, 32.0, -84.5, 0.0, 0.0)),
+            leaderboard: Some(LEADERBOARD_SPOT),
         }
     }
 }

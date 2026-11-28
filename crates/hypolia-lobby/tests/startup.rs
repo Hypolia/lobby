@@ -1,7 +1,7 @@
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
-use hypolia_lobby::config::{LobbyLayout, WaypointPose};
+use hypolia_lobby::config::{LEADERBOARD_FIRST_SPOT, LEADERBOARD_SPOT, LobbyLayout, WaypointPose};
 use hypolia_lobby::storage::{Backoff, LayoutRepository, RepositoryError, load_or_seed};
 
 struct Flaky {
@@ -158,4 +158,16 @@ async fn a_seed_without_a_position_leaves_the_stored_layout_alone() {
     let layout = load_or_seed(&repo, &seed, fast(None)).await.expect("loads");
     assert_eq!(layout.leaderboard, None);
     assert!(repo.saved.lock().expect("lock").is_none());
+}
+
+#[tokio::test]
+async fn a_board_still_at_its_first_bundled_position_is_lowered() {
+    let mut stored = admin_layout();
+    stored.leaderboard = Some(LEADERBOARD_FIRST_SPOT);
+    let repo = Flaky::new(0, Some(stored));
+    let layout = load_or_seed(&repo, &LobbyLayout::default(), fast(None))
+        .await
+        .expect("loads");
+    assert_eq!(layout.leaderboard, Some(LEADERBOARD_SPOT));
+    assert_eq!(*repo.saved.lock().expect("lock"), Some(layout));
 }

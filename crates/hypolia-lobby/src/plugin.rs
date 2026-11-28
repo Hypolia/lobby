@@ -2068,6 +2068,13 @@ impl HypoliaLobby {
                 .leaderboard
                 .switch_game(&player.server().world)
                 .await;
+            let pitch = match game {
+                GameKind::SheepWars => 1.0,
+                GameKind::TowerWars => 1.4,
+            };
+            player
+                .sound
+                .play(SoundCue::new(Sound::UiButtonClick).volume(0.7).pitch(pitch));
             player
                 .action_bar
                 .send(format!("§7Classement : {}", game_tag(game)));
