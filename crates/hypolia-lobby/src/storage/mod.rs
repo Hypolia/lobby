@@ -10,7 +10,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 use crate::auth::PlayerSession;
-use crate::config::{EnvConfig, LobbyLayout};
+use crate::config::{EnvConfig, LEADERBOARD_FIRST_SPOT, LobbyLayout};
 
 pub use file::{FileLayoutRepository, FileSessionRepository};
 pub use gate::WriteGate;
@@ -205,11 +205,14 @@ pub async fn load_or_seed<R: LayoutRepository>(
 }
 
 fn add_missing_leaderboard(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool {
-    if layout.leaderboard.is_some() || seed.leaderboard.is_none() {
+    if seed.leaderboard.is_none() {
         return false;
     }
-    layout.leaderboard = seed.leaderboard;
-    true
+    if layout.leaderboard.is_none() || layout.leaderboard == Some(LEADERBOARD_FIRST_SPOT) {
+        layout.leaderboard = seed.leaderboard;
+        return true;
+    }
+    false
 }
 
 fn add_missing_towerwars_pedestal(layout: &mut LobbyLayout, seed: &LobbyLayout) -> bool {
