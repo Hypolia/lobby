@@ -4,9 +4,9 @@ use std::time::Duration;
 use hypolia_progression::{Coins, Level, Unlock};
 use hypolia_protocol::{
     AdminCoinGrant, CosmeticId, CosmeticSlot, EquipRequest, FleetStatusSnapshot, GameFleetStatus,
-    GameKind, HeartbeatRequest, JoinQueueRequest, JoinQueueResponse, LeaveQueueRequest,
-    LeaveQueueResponse, LeaveReason, PlayerIdentityUpdate, PlayerProfile, PlayerQueueState,
-    PlayerQueueStatus, PlayerRank, PurchaseRequest, SpectateRequest,
+    GameKind, HeartbeatRequest, JoinQueueRequest, JoinQueueResponse, Leaderboard,
+    LeaveQueueRequest, LeaveQueueResponse, LeaveReason, PlayerIdentityUpdate, PlayerProfile,
+    PlayerQueueState, PlayerQueueStatus, PlayerRank, PurchaseRequest, SpectateRequest,
 };
 use serde::Deserialize;
 use thiserror::Error;
@@ -215,6 +215,23 @@ impl OrchestratorClient {
             .write()
             .unwrap_or_else(|e| e.into_inner()) = Some(snap.clone());
         Ok(snap)
+    }
+
+    pub async fn fetch_leaderboard(
+        &self,
+        game: GameKind,
+        limit: u32,
+    ) -> Result<Leaderboard, OrchestratorClientError> {
+        let url = format!(
+            "{}/api/v1/leaderboards/{}?limit={limit}",
+            self.base_url,
+            game.slug()
+        );
+        let resp = self.apply_auth(self.http.get(url)).send().await?;
+        if !resp.status().is_success() {
+            return Err(OrchestratorClientError::HttpStatus(resp.status().as_u16()));
+        }
+        Ok(resp.json().await?)
     }
 
     async fn queue_status(

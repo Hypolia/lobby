@@ -25,6 +25,7 @@ use crate::config::{ConfigError, EnvConfig, LayoutStore, WaypointPose};
 use crate::gadgets::{AuraTrail, GadgetManager, LobbyGadget};
 use crate::heartbeat::HeartbeatReporter;
 use crate::hud::{HubMetrics, HudManager, PlayerHudInput};
+use crate::leaderboard::LeaderboardHud;
 use crate::menus::{
     GadgetsMenuAction, GamesMenuAction, MenuManager, OptionsMenuAction, apply_lobby_hotbar,
     decode_gadgets_click, decode_games_click, decode_options_click, decode_towerwars_size_click,
@@ -59,12 +60,13 @@ const RUN_WATCH_POLL_INTERVAL: Duration = Duration::from_secs(1);
 const RUN_WATCH_MAX_POLLS: usize = 900;
 const RUN_FINISH_BAR_LINGER: Duration = Duration::from_secs(3);
 const MAX_CACHED_RESULTS: usize = 128;
-const LOBBY_SUBCOMMANDS: [&str; 8] = [
+const LOBBY_SUBCOMMANDS: [&str; 9] = [
     "info",
     "reload",
     "setspawn",
     "setpoi",
     "setpedestal",
+    "setleaderboard",
     "setcaptain",
     "setstation",
     "setwaypoint",
@@ -81,6 +83,7 @@ struct SharedState {
     hud: HudManager,
     chat: ChatSystem,
     npcs: Arc<NpcDirector>,
+    leaderboard: Arc<LeaderboardHud>,
     orchestrator: Option<Arc<OrchestratorClient>>,
     heartbeat: Option<Arc<HeartbeatReporter>>,
     lobby_version: Option<String>,
@@ -114,6 +117,10 @@ impl HypoliaLobby {
                 config.orchestrator_token.clone(),
             ))
         });
+        let leaderboard = Arc::new(LeaderboardHud::new(
+            Arc::clone(&layout),
+            orchestrator.clone(),
+        ));
         Self {
             state: Arc::new(SharedState {
                 config,
@@ -126,6 +133,7 @@ impl HypoliaLobby {
                 hud: HudManager::default(),
                 chat: ChatSystem::default(),
                 npcs,
+                leaderboard,
                 orchestrator,
                 heartbeat,
                 lobby_version: crate::config::lobby_version(),
@@ -1729,6 +1737,12 @@ impl HypoliaLobby {
             .spawn_all(server, QueueCounts::default())
             .await;
 
+        let leaderboard = Arc::clone(&self.state.leaderboard);
+        let srv_leaderboard = server.clone();
+        tokio::spawn(async move {
+            leaderboard.run(srv_leaderboard).await;
+        });
+
         let npcs = Arc::clone(&self.state.npcs);
         let auth = Arc::clone(&self.state.auth);
         let srv_npcs = server.clone();
@@ -2817,6 +2831,7 @@ impl HypoliaLobby {
                         .npcs
                         .spawn_all(&player.server(), self.queued_counts())
                         .await;
+                    self.state.leaderboard.sync(&player.server().world).await;
                     ctx.reply("§a✔ Configuration lobby.json rechargée et PNJ synchronisés.");
                 }
                 Err(err) => ctx.reply(format!("§cErreur de rechargement : {err}")),
@@ -2880,6 +2895,23 @@ impl HypoliaLobby {
                             .spawn_all(&player.server(), self.queued_counts())
                             .await;
                         ctx.reply(format!("§a✔ Plot #{idx} repositionné et PNJ mis à jour."));
+                    }
+                    Err(err) => ctx.reply(format!("§c{err}")),
+                }
+            }
+            "setleaderboard" => {
+                let res = self
+                    .state
+                    .layout
+                    .update(|l| {
+                        l.leaderboard = Some(pose);
+                        Ok(())
+                    })
+                    .await;
+                match res {
+                    Ok(_) => {
+                        self.state.leaderboard.sync(&player.server().world).await;
+                        ctx.reply("§a✔ Tableau des meilleurs joueurs placé sur votre position.");
                     }
                     Err(err) => ctx.reply(format!("§c{err}")),
                 }
