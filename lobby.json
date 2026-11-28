@@ -80,6 +80,23 @@
         "yaw": -105.0,
         "pitch": 0.0
       }
+    },
+    {
+      "index": 1,
+      "id": "deacoudre",
+      "npc_name": "DeACoudre",
+      "title": "§6§lDÉ À COUDRE",
+      "subtitle": "§a▶ Clic droit pour jouer !",
+      "game_id": "deacoudre",
+      "active": true,
+      "main_hand": "minecraft:water_bucket",
+      "pose": {
+        "x": 26.5,
+        "y": 27.0,
+        "z": -70.5,
+        "yaw": 105.0,
+        "pitch": 0.0
+      }
     }
   ],
   "ambient_npcs": [

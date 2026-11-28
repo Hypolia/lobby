@@ -44,6 +44,7 @@ pub const fn game_label(kind: ServerKind) -> &'static str {
         ServerKind::Lobby => "Lobby",
         ServerKind::SheepWars => "SheepWars",
         ServerKind::TowerWars => "TowerWars",
+        ServerKind::DeACoudre => "Dé à coudre",
     }
 }
 
@@ -287,6 +288,7 @@ mod tests {
     fn each_game_server_names_its_game() {
         assert_eq!(game_label(ServerKind::SheepWars), "SheepWars");
         assert_eq!(game_label(ServerKind::TowerWars), "TowerWars");
+        assert_eq!(game_label(ServerKind::DeACoudre), "Dé à coudre");
         assert_eq!(game_label(ServerKind::Lobby), "Lobby");
     }
 

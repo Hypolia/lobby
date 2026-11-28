@@ -384,6 +384,18 @@ impl Default for LobbyLayout {
                 off_hand: Some("minecraft:arrow".to_owned()),
                 pose: WaypointPose::new(0.5, 27.0, -70.5, -105.0, 0.0),
             },
+            PedestalSpec {
+                index: 1,
+                id: "deacoudre".to_owned(),
+                npc_name: "DeACoudre".to_owned(),
+                title: "§6§lDÉ À COUDRE".to_owned(),
+                subtitle: "§a▶ Clic droit pour jouer !".to_owned(),
+                game_id: "deacoudre".to_owned(),
+                active: true,
+                main_hand: "minecraft:water_bucket".to_owned(),
+                off_hand: None,
+                pose: WaypointPose::new(26.5, 27.0, -70.5, 105.0, 0.0),
+            },
         ];
 
         let ambient_npcs = vec![
@@ -575,9 +587,9 @@ mod tests {
     }
 
     #[test]
-    fn default_layout_has_two_pedestals_with_sheepwars_at_index_4() {
+    fn default_layout_has_three_pedestals_with_sheepwars_at_index_4() {
         let layout = LobbyLayout::default();
-        assert_eq!(layout.pedestals.len(), 2);
+        assert_eq!(layout.pedestals.len(), 3);
         let center = &layout.pedestals[0];
         assert_eq!(center.index, 4);
         assert_eq!(center.game_id, "sheepwars");
@@ -602,6 +614,23 @@ mod tests {
         let indexes: std::collections::BTreeSet<_> =
             layout.pedestals.iter().map(|p| p.index).collect();
         assert_eq!(indexes.len(), layout.pedestals.len());
+    }
+
+    #[test]
+    fn default_layout_has_an_active_deacoudre_pedestal_matching_its_game_slug() {
+        let layout = LobbyLayout::default();
+        let dac = layout
+            .pedestals
+            .iter()
+            .find(|p| p.id == "deacoudre")
+            .expect("deacoudre pedestal");
+        assert!(dac.active);
+        assert_eq!(dac.index, 1);
+        assert_eq!(
+            Some(hypolia_protocol::GameKind::DeACoudre),
+            hypolia_protocol::GameKind::from_slug(&dac.game_id)
+        );
+        assert_eq!(dac.main_material(), Some(Material::WaterBucket));
     }
 
     async fn open_file_store(path: &std::path::Path) -> LayoutStore {

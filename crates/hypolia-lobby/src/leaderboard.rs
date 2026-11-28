@@ -27,6 +27,7 @@ const fn game_color(game: GameKind) -> &'static str {
     match game {
         GameKind::SheepWars => "§d",
         GameKind::TowerWars => "§b",
+        GameKind::DeACoudre => "§6",
     }
 }
 
@@ -375,6 +376,15 @@ mod tests {
             Some(&board(GameKind::TowerWars, vec![])),
         );
         assert!(text.contains("§bTowerWars §7· victoires"), "{text}");
+    }
+
+    #[test]
+    fn deacoudre_uses_its_own_colour_and_name() {
+        let text = format_board(
+            GameKind::DeACoudre,
+            Some(&board(GameKind::DeACoudre, vec![])),
+        );
+        assert!(text.contains("§6Dé à coudre §7· victoires"), "{text}");
     }
 
     #[test]

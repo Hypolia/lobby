@@ -127,7 +127,7 @@ pub fn build_tab_list(input: &PlayerHudInput) -> TabList {
         input.metrics.online
     );
     let footer = format!(
-        "\n§7Grade : {} §8• §7Compte : {fk_status}\n§7Ping : §a{ping} ms §8• §7TPS : §a{tps:.1} §8• §7En jeu : §d{}\n§6/menu §8• §d/sheepwars §8• §b/towerwars §8• §b/gadgets §8• §b/fly §8• §e/options\n",
+        "\n§7Grade : {} §8• §7Compte : {fk_status}\n§7Ping : §a{ping} ms §8• §7TPS : §a{tps:.1} §8• §7En jeu : §d{}\n§6/menu §8• §d/sheepwars §8• §b/towerwars §8• §6/deacoudre §8• §b/gadgets §8• §b/fly §8• §e/options\n",
         input.rank.sidebar_label(),
         input.metrics.in_game
     );

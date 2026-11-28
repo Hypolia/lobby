@@ -470,10 +470,13 @@ impl OrchestratorClient {
 pub struct QueueCounts {
     pub sheepwars: usize,
     pub towerwars: usize,
+    pub deacoudre: usize,
     /// Players on SheepWars servers right now.
     pub sheepwars_playing: u32,
     /// Players on TowerWars servers right now.
     pub towerwars_playing: u32,
+    /// Players on DeACoudre servers right now.
+    pub deacoudre_playing: u32,
 }
 
 impl QueueCounts {
@@ -496,8 +499,10 @@ impl QueueCounts {
         Self {
             sheepwars: per_game(GameKind::SheepWars).unwrap_or(snapshot.queue_len),
             towerwars: per_game(GameKind::TowerWars).unwrap_or(0),
+            deacoudre: per_game(GameKind::DeACoudre).unwrap_or(0),
             sheepwars_playing: playing(GameKind::SheepWars),
             towerwars_playing: playing(GameKind::TowerWars),
+            deacoudre_playing: playing(GameKind::DeACoudre),
         }
     }
 
@@ -505,6 +510,7 @@ impl QueueCounts {
         match game {
             GameKind::SheepWars => self.sheepwars_playing,
             GameKind::TowerWars => self.towerwars_playing,
+            GameKind::DeACoudre => self.deacoudre_playing,
         }
     }
 
@@ -512,6 +518,7 @@ impl QueueCounts {
         match game {
             GameKind::SheepWars => self.sheepwars,
             GameKind::TowerWars => self.towerwars,
+            GameKind::DeACoudre => self.deacoudre,
         }
     }
 
@@ -519,6 +526,7 @@ impl QueueCounts {
         match game {
             GameKind::SheepWars => self.sheepwars = count,
             GameKind::TowerWars => self.towerwars = count,
+            GameKind::DeACoudre => self.deacoudre = count,
         }
         self
     }
@@ -644,7 +652,9 @@ mod tests {
                 {"server_id": "sw-2", "address": "b", "phase": "waiting", "player_count": 2,
                  "max_players": 8, "ready": true, "heartbeat_age_secs": 1, "kind": "sheep_wars"},
                 {"server_id": "tw-1", "address": "c", "phase": "in_game", "player_count": 3,
-                 "max_players": 4, "ready": true, "heartbeat_age_secs": 1, "kind": "tower_wars"}
+                 "max_players": 4, "ready": true, "heartbeat_age_secs": 1, "kind": "tower_wars"},
+                {"server_id": "dc-1", "address": "e", "phase": "in_game", "player_count": 5,
+                 "max_players": 8, "ready": true, "heartbeat_age_secs": 1, "kind": "de_a_coudre"}
             ],
             "lobbies": [
                 {"server_id": "lobby-a", "address": "d", "phase": "waiting", "player_count": 9,
@@ -655,6 +665,7 @@ mod tests {
         let counts = QueueCounts::from_snapshot(&snapshot);
         assert_eq!(counts.playing(GameKind::SheepWars), 8);
         assert_eq!(counts.playing(GameKind::TowerWars), 3);
+        assert_eq!(counts.playing(GameKind::DeACoudre), 5);
     }
 
     #[test]

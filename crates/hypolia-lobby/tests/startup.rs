@@ -122,6 +122,55 @@ async fn stored_layout_without_towerwars_gets_it_in_place_of_the_inactive_uhc_sl
 }
 
 #[tokio::test]
+async fn stored_layout_without_deacoudre_gets_it_at_the_seed_pose() {
+    let mut stored = admin_layout();
+    stored.pedestals.retain(|p| p.id != "deacoudre");
+    let repo = Flaky::new(0, Some(stored));
+    let seed = LobbyLayout::default();
+    let layout = load_or_seed(&repo, &seed, fast(None)).await.expect("loads");
+    let dac = layout
+        .pedestals
+        .iter()
+        .find(|p| p.id == "deacoudre")
+        .expect("deacoudre pedestal added");
+    assert!(dac.active);
+    assert_eq!(dac.game_id, "deacoudre");
+    assert_eq!(
+        Some(dac),
+        seed.pedestals.iter().find(|p| p.id == "deacoudre")
+    );
+    assert_eq!(*repo.saved.lock().expect("lock"), Some(layout));
+}
+
+#[tokio::test]
+async fn deacoudre_takes_the_place_of_an_inactive_placeholder_at_its_index() {
+    let mut stored = admin_layout();
+    let slot = stored
+        .pedestals
+        .iter_mut()
+        .find(|p| p.id == "deacoudre")
+        .expect("default has deacoudre");
+    slot.id = "rush".to_owned();
+    slot.game_id = "rush".to_owned();
+    slot.active = false;
+    let placeholder_pose = WaypointPose::new(30.5, 27.0, -72.5, 100.0, 0.0);
+    slot.pose = placeholder_pose;
+    let repo = Flaky::new(0, Some(stored));
+    let layout = load_or_seed(&repo, &LobbyLayout::default(), fast(None))
+        .await
+        .expect("loads");
+    let dac = layout
+        .pedestals
+        .iter()
+        .find(|p| p.id == "deacoudre")
+        .expect("deacoudre replaces the placeholder");
+    assert!(dac.active);
+    assert_eq!(dac.pose, placeholder_pose);
+    assert!(layout.pedestals.iter().all(|p| p.id != "rush"));
+    assert_eq!(*repo.saved.lock().expect("lock"), Some(layout));
+}
+
+#[tokio::test]
 async fn stored_layout_without_a_leaderboard_position_gets_the_bundled_one() {
     let mut stored = admin_layout();
     stored.leaderboard = None;
